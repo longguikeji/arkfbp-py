@@ -1,28 +1,33 @@
-# from .node import Node, StartNode, StopNode, FunctionNode, NopNode, APINode, IFNode, LoopNode
-# from .graph import Graph, GraphNode
-# from .state import State
-# from .stack import Stack
-# from .flow import Flow
-# from .request import Request
-import os
-import importlib
+from .nodes import (Node, StartNode, StopNode, FunctionNode, NopNode, APINode, IFNode, LoopNode)
+
+from .graph import (Graph, GraphNode)
+
+from .state import (State, FlowState, AppState)
+
+from .stack import Stack
+
+from .flow import Flow, ViewFlow
+
+from arkfbp.response import Response
+
+from .utils.version import get_version
+
+VERSION = (0, 0, 2, 'alpha', 0)
+__version__ = get_version()
+
+# def int_or_str(value):
+#     try:
+#         return int(value)
+#     except ValueError:
+#         return value
+# import importlib
 
 
-def int_or_str(value):
-    try:
-        return int(value)
-    except ValueError:
-        return value
-
-__version__ = '0.0.2'
-VERSION = tuple(map(int_or_str, __version__.split('.')))
-
-
-def run_flow(flowname, inputs):
-    filename = '.'.join(['flows', flowname, 'main'])
-    clz = importlib.import_module(filename)
-    instance = clz.Main()
-    return instance.main(inputs)
+# def run_flow(flowname, inputs):
+#     filename = '.'.join(['flows', flowname, 'main'])
+#     clz = importlib.import_module(filename)
+#     instance = clz.Main()
+#     return instance.main(inputs)
 
 # def run_flow(flow, request):
 #     flow = 'flows.{}.main'.format(flow,)

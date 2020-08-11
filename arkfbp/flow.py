@@ -1,30 +1,36 @@
+import abc
+
+import six
+from django.views import View
+
 from .stack import Stack
 from .nodes import IFNode
 
+
+@six.add_metaclass(abc.ABCMeta)
 class Flow:
 
     inputs = None
 
     def __init__(self):
         self._stack = Stack()
-
         self.graph = self.create_graph()
         self.state = {}
-
         new_state = self.create_state()
         if new_state is not None and isinstance(new_state, dict):
             self.state.update(new_state)
-
         # 根据 Nodes & Edges 设置 next
 
     def init(self):
         pass
 
+    @abc.abstractmethod
     def create_graph(self):
+        """返回 JSON 形式的节点信息"""
         raise NotImplementedError
 
     def create_state(self):
-        '''工作流可以覆盖'''
+        """工作流可以覆盖"""
         return None
 
     def main(self, inputs=None):
@@ -33,7 +39,7 @@ class Flow:
             last_outputs = inputs
             self.inputs = inputs
 
-        graph_node = self.graph.nodes()[0]
+        graph_node = self.graph.nodes[0]
         while graph_node is not None:
             node = graph_node['cls']()
             node.flow = self
@@ -68,7 +74,7 @@ class Flow:
 
             node.outputs = outputs
             self._stack.push(node)
-            print('node {} {} executed, with outputs: {}'.format(
+            print('* node {} {} executed, with outputs: {} *'.format(
                 graph_node['id'],
                 graph_node['cls'].__class__,
                 outputs,
@@ -102,3 +108,18 @@ class Flow:
 
         print('---------- END DEBUG INFORMATION -------------')
 
+
+class ViewFlow(Flow, View):
+    """"""
+
+    # 需要手动设置流的访问方式
+    allow_http_method = []
+
+    @classmethod
+    def set_http_method(cls, method: list):
+        cls.allow_http_method = method
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method.upper() in self.allow_http_method:
+            return self.main(request)
+        return self.http_method_not_allowed(request, *args, **kwargs)

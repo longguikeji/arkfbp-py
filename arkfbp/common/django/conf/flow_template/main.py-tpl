@@ -1,0 +1,14 @@
+from arkfbp import ViewFlow, Graph
+
+
+# Editor your flow here.
+class Main(ViewFlow):
+
+    def create_graph(self):
+        g = Graph()
+        g.nodes = self.create_nodes()
+        g.edges = ['']
+        return g
+
+    def create_nodes(self):
+        return []

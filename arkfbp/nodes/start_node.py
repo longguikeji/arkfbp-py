@@ -6,5 +6,5 @@ class StartNode(Node):
     name = 'start'
     kind = 'start'
 
-    def run(self):
-        return None
+    def run(self, *args, **kwargs):
+        return self.inputs

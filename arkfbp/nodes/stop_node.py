@@ -6,5 +6,5 @@ class StopNode(Node):
     name = 'stop'
     kind = 'stop'
 
-    def run(self):
-        return None
+    def run(self, *args, **kwargs):
+        return self.inputs

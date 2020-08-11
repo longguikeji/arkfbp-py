@@ -30,5 +30,10 @@ class Graph:
 
         return self._nodes[0]
 
+    @property
     def nodes(self):
         return self._nodes
+
+    @nodes.setter
+    def nodes(self, nodes):
+        self._nodes = nodes

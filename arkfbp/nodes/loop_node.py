@@ -1,5 +1,6 @@
 from .base import Node
 
+
 class LoopNode(Node):
 
     name = "loop"

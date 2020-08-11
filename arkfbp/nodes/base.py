@@ -7,6 +7,8 @@ class Node:
     id = ''
     name = ''
     kind = 'base'
+    next = None
+    error_next = None
 
     def __init__(self, *args, **kwargs):
         self._state = None
@@ -58,9 +60,6 @@ class Node:
     @inputs.setter
     def inputs(self, v):
         self._inputs = v
-
-    next = None
-    error_next = None
 
     def on_completed(self):
         pass

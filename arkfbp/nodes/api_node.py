@@ -7,7 +7,7 @@ class APINode(Node):
     name = 'api'
     kind = 'api'
 
-    mode = 'direct' # proxy
+    mode = 'direct'  # proxy
 
     url = ''
     method = 'GET'

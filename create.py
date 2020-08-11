@@ -1,3 +1,6 @@
+"""
+将被废弃
+"""
 import sys
 import os
 
@@ -15,7 +18,8 @@ if __name__ == '__main__':
     if not os.path.exists(flow_dir):
         os.makedirs(flow_dir)
 
-    with open(os.path.join(flow_dir, '__init__.py'), 'w'): pass
+    with open(os.path.join(flow_dir, '__init__.py'), 'w'):
+        pass
 
     # create entry file
 

@@ -7,3 +7,4 @@ from .api_node import APINode
 from .nop_node import NopNode
 from .test_node import TestNode
 from .trigger_flow_node import TriggerFlowNode
+from .base import Node

@@ -6,5 +6,5 @@ class FunctionNode(Node):
     name = 'function'
     kind = 'function'
 
-    def run(self):
+    def run(self, *args, **kwargs):
         return None
