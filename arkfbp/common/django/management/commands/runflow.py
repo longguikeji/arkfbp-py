@@ -1,12 +1,10 @@
 import importlib
-from django.core.management.templates import TemplateCommand
+from django.core.management.base import BaseCommand
 
 
-class Command(TemplateCommand):
-    help = (
-        "Run a Arkfbp Flow for the given flow name"
-    )
-    missing_args_message = "You must provide an flow name."
+class Command(BaseCommand):
+    help = "Run a Arkfbp Flow for the given flow name"
+    # missing_args_message = "You must provide an flow name."
 
     def handle(self, **options):
         path = options.get('flow')

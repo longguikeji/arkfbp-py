@@ -8,7 +8,7 @@ from .stack import Stack
 
 from .flow import Flow, ViewFlow
 
-from arkfbp.response import Response
+from .response import Response
 
 from .utils.version import get_version
 
