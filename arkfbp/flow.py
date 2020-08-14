@@ -1,8 +1,10 @@
 import abc
 
 import six
+from django.utils.decorators import classonlymethod
 from django.views import View
 
+from . import Graph
 from .stack import Stack
 from .nodes import IFNode
 
@@ -24,10 +26,16 @@ class Flow:
     def init(self):
         pass
 
-    @abc.abstractmethod
     def create_graph(self):
         """返回 JSON 形式的节点信息"""
-        raise NotImplementedError
+        g = Graph()
+        g.nodes = self.create_nodes()
+        g.edges = ['']
+        return g
+
+    @abc.abstractmethod
+    def create_nodes(self):
+        raise NotImplemented
 
     def create_state(self):
         """工作流可以覆盖"""
@@ -110,7 +118,9 @@ class Flow:
 
 
 class ViewFlow(Flow, View):
-    """"""
+    """
+    django view
+    """
 
     # 需要手动设置流的访问方式
     allow_http_method = []
@@ -123,3 +133,11 @@ class ViewFlow(Flow, View):
         if request.method.upper() in self.allow_http_method:
             return self.main(request)
         return self.http_method_not_allowed(request, *args, **kwargs)
+
+    @classonlymethod
+    def pre_as_view(cls, http_method, **initkwargs):
+        """
+        Before executing the as_view function, pass it the `allow_http_method`
+        """
+        cls.set_http_method(http_method)
+        return super().as_view(**initkwargs)

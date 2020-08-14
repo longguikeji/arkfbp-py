@@ -50,14 +50,6 @@ arkfbp-py is the python implementation of the arkfbp.
 
     class Main(ViewFlow):
 
-        allow_http_method = ['GET']
-
-        def create_graph(self):
-            g = Graph()
-            g.nodes = self.create_nodes()
-            g.edges = ['']
-            return g
-
         def create_nodes(self):
             return [
                 {
@@ -76,17 +68,35 @@ arkfbp-py is the python implementation of the arkfbp.
                 }
             ]
 
-8、在`demo/demo/urls`中设置`url`:
+8、在`demo/arkfbp/routes/demo.json`中配置路由信息:
     
-    from demo.flows.flow1.main import Main as view_flow1
+    {
+        "namespace": "demo/v1/",
+        "routes": [
+            {
+                "flow1/": {
+                    "post": "app1.flows.flow1"
+                }
+            }
+        ]
+    }
+
+9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径:
+
+    python3.7 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
+
+10、将`9`中生成的url文件，配置到项目的demo/urls.py中
+    
+    from django.contrib import admin
+    from django.urls import path, include
 
     urlpatterns = [
         path('admin/', admin.site.urls),
-        path('demo/', view_flow1.as_view(), name='demo'),
+        path('', include('demo.demo_urls'))
     ]
 
-9、尝试运行流`flow1`:
+11、尝试运行流`flow1`:
 
     python manage.py runflow --flow app1.flows.flow1.main --input example
 
-10、使用`django`原生方式启动`server`
+12、使用`django`原生方式启动`server`
