@@ -4,8 +4,12 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # installation
 
-    pip install arkfbp
+    pip3 install arkfbp
 
+# Dev installation
+
+    python3 setup.py install
+    
 # Quick Start
 
 1、新建名为`demo`的项目:
@@ -44,8 +48,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
     # Editor your flow here.
     from arkfbp.flow import ViewFlow
-    from user.flows.create.nodes.node1 import Node1
-    from user.flows.create.nodes.node2 import Node2
+    from app1.flows.flow1.nodes.node1 import Node1
 
 
     class Main(ViewFlow):
@@ -75,7 +78,7 @@ arkfbp-py is the python implementation of the arkfbp.
         "routes": [
             {
                 "flow1/": {
-                    "post": "app1.flows.flow1"
+                    "get": "app1.flows.flow1"
                 }
             }
         ]
@@ -83,7 +86,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径:
 
-    python3.7 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
+    python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
 10、将`9`中生成的url文件，配置到项目的demo/urls.py中
     
@@ -97,6 +100,8 @@ arkfbp-py is the python implementation of the arkfbp.
 
 11、尝试运行流`flow1`:
 
-    python manage.py runflow --flow app1.flows.flow1.main --input example
+    python3 manage.py runflow --flow app1.flows.flow1.main --input example
 
 12、使用`django`原生方式启动`server`
+    
+    python3 manage.py runserver 0.0.0.0:8000
