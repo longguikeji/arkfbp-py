@@ -1,7 +1,8 @@
 import abc
 import six
 
-from arkfbp.graph import Graph, GraphParser
+from ..graph import Graph, GraphParser
+from ..node.base import start_node
 from ..state import State, AppState
 
 
@@ -158,37 +159,3 @@ def start_flow(flow, inputs, *args, **kwargs):
         flow.before_destroy(inputs, ret, *args, **kwargs)
 
     return flow.response
-
-
-def start_node(node, flow, graph_node):
-    node.flow = flow
-
-    if flow.valid_status():
-        node.created()
-
-    if flow.valid_status():
-        node.before_initialize()
-
-    if flow.valid_status():
-        node.init()
-        node.id = graph_node.id
-        node.state = flow.state
-        node.inputs = flow.outputs
-
-    if flow.valid_status():
-        node.initialized()
-
-    if flow.valid_status():
-        node.before_execute()
-
-    if flow.valid_status():
-        outputs = node.run()
-
-    if flow.valid_status():
-        node.executed()
-        node.outputs = outputs
-        flow.outputs = outputs
-        flow.state.push(node)
-        print(f'* {node} executed, with outputs: {outputs} *')
-
-    return outputs

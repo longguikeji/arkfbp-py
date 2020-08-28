@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.utils.decorators import classonlymethod
 from django.views import View
-from arkfbp.flow import Flow
-from arkfbp.flow.base import start_flow
-from arkfbp.request import HttpRequest
+
+from ..flow import Flow, start_flow
+from ..request import HttpRequest
 
 
 class ViewFlow(Flow, View):

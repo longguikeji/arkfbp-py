@@ -1,4 +1,4 @@
-from arkfbp.node import IFNode
+from .node import IFNode
 
 
 # TODO 将有序流保存在环境变量中无需每次都进行流的定向查找

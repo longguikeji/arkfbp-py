@@ -1,7 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 
-from arkfbp.flow import Flow
-from arkfbp.request import HttpRequest
+from ..flow import Flow
+from ..request import HttpRequest
 
 
 class GlobalHookFlow(MiddlewareMixin, Flow):
