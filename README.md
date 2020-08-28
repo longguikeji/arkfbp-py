@@ -100,7 +100,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 11、尝试运行流`flow1`:
 
-    python3 manage.py runflow --flow app1.flows.flow1.main --input example
+    python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post
 
 12、使用`django`原生方式启动`server`
     
@@ -226,7 +226,6 @@ arkfbp-py is the python implementation of the arkfbp.
 ## Flow State
 
 
-
 ## Flow Steps
 
 `flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据
@@ -234,4 +233,3 @@ arkfbp-py is the python implementation of the arkfbp.
 现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`
 
     node1 = node.state.steps.get('node1', None)
-

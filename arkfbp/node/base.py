@@ -127,6 +127,5 @@ def start_node(node, flow, graph_node):
         node.outputs = outputs
         flow.outputs = outputs
         flow.state.push(node)
-        print(f'* {node} executed, with outputs: {outputs} *')
 
     return outputs

@@ -1,4 +1,7 @@
 import abc
+import os
+import sys
+
 import six
 
 from ..graph import Graph, GraphParser
@@ -18,6 +21,7 @@ class Flow:
 
     inputs = None
     outputs = None
+    debug = True
 
     def __init__(self):
         self.graph = self.create_graph()
@@ -86,7 +90,8 @@ class Flow:
 
         return self.outputs
 
-    def convert_request(self, request):
+    @classmethod
+    def convert_request(cls, request):
         """Convert the framework's Request object to the ArkFBP's Request object"""
         return request
 
@@ -95,16 +100,18 @@ class Flow:
         self.outputs = outputs
         return self.response
 
-    def debug(self):
-        print('---------- DEBUG DEBUG INFORMATION -------------')
-
+    def log_debug(self):
+        if not self.debug:
+            sys.stdout.write('Flow Debug OFF')
+            return
+        sys.stdout.write('---------- DEBUG INFORMATION -------------\n\n')
         for node in self._state.nodes:
-            print('****** NODE ******')
-            print('Inputs: ', node.inputs)
-            print('Outputs: ', node.outputs)
-            print('****** END ******* ')
-
-        print('---------- END DEBUG INFORMATION -------------')
+            sys.stdout.write('****** NODE ******\n')
+            sys.stdout.write(f'ID: {node.id}\n')
+            sys.stdout.write(f'Inputs: {node.inputs}\n')
+            sys.stdout.write(f'Outputs: {node.outputs}\n')
+            sys.stdout.write('****** END *******\n\n')
+        sys.stdout.write('---------- END DEBUG INFORMATION -------------\n')
 
     def before_initialize(self, *args, **kwargs):
         """overridden by user"""
@@ -131,10 +138,6 @@ class Flow:
         return True
 
 
-def cli_start_flow(flow, inputs, *args, **kwargs):
-    """start a flow by cli"""
-
-
 def start_flow(flow, inputs, *args, **kwargs):
 
     flow.request = inputs
@@ -158,4 +161,5 @@ def start_flow(flow, inputs, *args, **kwargs):
     if flow.valid_status():
         flow.before_destroy(inputs, ret, *args, **kwargs)
 
+    flow.log_debug()
     return flow.response

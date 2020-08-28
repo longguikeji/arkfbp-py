@@ -34,7 +34,8 @@ class ViewFlow(Flow, View):
         cls.set_http_method(http_method)
         return super().as_view(**initkwargs)
 
-    def convert_request(self, request):
+    @classmethod
+    def convert_request(cls, request):
         return HttpRequest(request.environ)
 
     def shutdown(self, outputs, **kwargs):
