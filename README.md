@@ -100,7 +100,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 11、尝试运行流`flow1`:
 
-    python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post
+    python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post --header {\"Authorization\": \"token\"}
 
 12、使用`django`原生方式启动`server`
     
