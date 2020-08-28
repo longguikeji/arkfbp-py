@@ -1,4 +1,4 @@
-from arkfbp import FunctionNode
+from arkfbp.node import FunctionNode
 
 
 # Editor your node here.

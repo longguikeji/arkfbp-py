@@ -19,6 +19,21 @@ class Command(TemplateCommand):
     app_name = 'nodes'
     app_or_project = 'app'
 
+    def _file_name(self, node_name):
+        file_name = []
+        file_name.append(node_name[0].lower())
+        for x in node_name[1:]:
+            if x.isupper():
+                file_name.append(f'_{x.lower()}')
+            else:
+                file_name.append(x)
+        return ''.join(file_name)
+
+    def _class_name(self, node_name):
+        cls_name = [x for x in node_name if x != '_']
+        cls_name[0] = cls_name[0].upper()
+        return ''.join(cls_name)
+
     def handle(self, **options):
         node_name = options.pop('name')
         target = options.pop('directory')
@@ -43,8 +58,7 @@ class Command(TemplateCommand):
         base_subdir = 'app_template'
         base_directory = 'app_directory'
         camel_case_name = 'camel_case_node_name'
-        camel_case_value = ''.join(x for x in node_name.title() if x != '_')
-
+        camel_case_value = self._class_name(node_name)
         context = Context({
             **options,
             base_name: self.app_name,
@@ -65,7 +79,7 @@ class Command(TemplateCommand):
             for filename in files:
                 old_path = path.join(root, filename)
                 if filename == 'node.py-tpl':
-                    new_path = f'{path.join(top_dir, relative_dir, node_name.replace(base_name, self.app_name))}.py-tpl'
+                    new_path = f'{path.join(top_dir, relative_dir, self._file_name(node_name.replace(base_name, self.app_name)))}.py-tpl'
                 else:
                     new_path = path.join(top_dir, relative_dir, filename.replace(base_name, self.app_name))
                 for old_suffix, new_suffix in self.rewrite_template_suffixes:

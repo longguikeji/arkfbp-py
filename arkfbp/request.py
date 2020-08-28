@@ -1,21 +1,57 @@
-class HttpRequest:
-	"""A basic HTTP request."""
+import json
+from json.decoder import JSONDecodeError
 
-	def __init__(self):
-		self.QUERY_PARAMS = {}
-		self.BODY = {}
-		self.COOKIES = {}
-		self.META = {}
-		self.FILES = {}
-		self.path = ''
-		self.path_info = ''
-		self.method = None
-		self.content_type = None
-		self.content_params = None
-		self.schema = None
-		self.encoding = None
+from django.core.handlers.wsgi import WSGIRequest
+
+
+class HttpRequest(WSGIRequest):
+	"""A HTTP request extends WSGIRequest."""
+
+	def __init__(self, environ):
+		super(HttpRequest, self).__init__(environ)
+		self._str = None
+		self._data = self._merge_data()
+
+	def _merge_data(self):
+		"""
+		Merge the get and POST data together
+		"""
+		get_data = self.GET
+		post_data = self.POST
+		# 1）`body`为`form-data`、`application/x-www-form-urlencoded`格式数据
+		if post_data:
+			return {**get_data, **post_data}
+		# 2）`body`为`json`、`text`等其他形式数据
+		post_body = self.body
+		if not post_body:
+			return {**get_data}
+		json_body = dict()
+		try:
+			json_body = json.loads(post_body)
+		except JSONDecodeError:
+			self._str = post_body
+		finally:
+			return {**get_data, **json_body}
+
+	def __contains__(self, item):
+		"""
+		``x in HttpRequest`` is an alias for ``x in HttpRequest.data``
+		"""
+		return item in self.data
 
 	@property
-	def headers(self):
-		# TODO 头部信息缓存 + 解析头部信息友好展示
-		return self.META
+	def data(self):
+		"""
+		The QueryString data and Body data of a request are returned as a 'Python' data structure, usually a 'dict'.
+		"""
+		return self._data
+
+	def get(self, *args, **kwargs):
+		"""
+		`HttpRequest.get(...)` is an alias for `BaseResponse.data.get(...)`
+		"""
+		return self.data.get(*args, **kwargs)
+
+	@property
+	def str(self):
+		return self._str

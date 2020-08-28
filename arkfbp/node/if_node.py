@@ -1,20 +1,22 @@
 from .base import Node
 
 
+# IFNode metadata
+_NODE_NAME = 'if'
+_NODE_KIND = 'if'
+
+
 class IFNode(Node):
 
-    name = 'if'
-    kind = 'if'
+    name = _NODE_NAME
+    kind = _NODE_KIND
 
     ret = False
 
     def run(self, *args, **kwargs):
-        ret_code = self.expression()
-        self.ret = bool(ret_code)
-
-        if ret_code:
+        self.ret = bool(self.expression())
+        if self.ret:
             return self.positive_statement()
-
         return self.negative_statement()
 
     def expression(self):

@@ -1,10 +1,15 @@
 from .base import Node
 
 
+# LoopNode metadata
+_NODE_NAME = 'loop'
+_NODE_KIND = 'loop'
+
+
 class LoopNode(Node):
 
-    name = "loop"
-    kind = "loop"
+    name = _NODE_NAME
+    kind = _NODE_KIND
 
     def init_statement(self):
         pass

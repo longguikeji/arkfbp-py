@@ -44,8 +44,8 @@ arkfbp-py is the python implementation of the arkfbp.
 
 7、`demo/app1/flows/flow1`的`main.py`示例如下:
     
-    from arkfbp import Graph, StartNode, StopNode
-
+    from arkfbp.node import StartNode, StopNode
+    from arkfbp.graph import Graph
     # Editor your flow here.
     from arkfbp.flow import ViewFlow
     from app1.flows.flow1.nodes.node1 import Node1
@@ -105,3 +105,90 @@ arkfbp-py is the python implementation of the arkfbp.
 12、使用`django`原生方式启动`server`
     
     python3 manage.py runserver 0.0.0.0:8000
+
+# Advanced usage
+
+## Global Hook Flow
+
+全局钩子式工作流运行的场景适用于：
+
+1）服务进行路由之前（self.before_route）
+
+2）所有工作流运行之前（self.before_flow）
+
+3）所有工作流运行之后（self.after_flow）
+
+4）抛出异常之前（self.before_exception）
+
+### 简单使用
+
+1、创建全局钩子式工作流，在项目根目录创建`hook.py`文件(仅为示例)
+
+    from arkfbp.flow import GlobalHookFlow
+    class HookFlow(GlobalHookFlow):
+    
+        def create_nodes(self):
+            return [
+                {
+                    'cls': StartNode,
+                    'id': 'start',
+                    'next': 'stop'
+                },
+                {
+                    'cls': StopNode,
+                    'id': 'stop'
+                }
+            ]
+    
+        def set_mount(self):
+            self.before_flow = True
+
+2、在`set_mount()`方法中设置想要开启钩子的位置
+    
+    def set_mount(self):
+        """
+        设置为在所有工作流运行之前执行全局钩子流
+        """
+        self.before_flow = True
+
+3、将钩子流配置到项目的`settings.py`文件的`MIDDLEWARE`变量中
+
+    INSTALLED_APPS = [
+        ...
+    ]
+    MIDDLEWARE = [
+        ...
+        'hook.HookFlow'
+    ]
+
+## Flow Hook
+
+1、流创建成功后
+
+    def created(inputs, *args, **kwargs):
+        pass
+
+2、流初始化之前
+
+    def before_initialize(inputs, *args, **kwargs):
+        pass
+            
+3、流初始化之后
+
+    def initialized(inputs, *args, **kwargs):
+        pass
+    
+4、流执行之前
+
+    def before_execute(inputs, *args, **kwargs):
+        pass
+        
+5、流执行之后
+
+    def executed(inputs, ret, *args, **kwargs):
+        pass
+ 
+6、流被销毁之前
+
+    def before_destroy(inputs, ret, *args, **kwargs):
+        pass
