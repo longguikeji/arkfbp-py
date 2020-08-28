@@ -192,3 +192,46 @@ arkfbp-py is the python implementation of the arkfbp.
 
     def before_destroy(inputs, ret, *args, **kwargs):
         pass
+
+## ShutDown Flow
+
+现在，你可以通过`flow.shutdown(outputs, **kwargs)`方法，来随时随地的停止工作流的运行
+
+如果你使用`ViewFlow`来定义流，那么可指定返回的`response`的状态码`response_status`，例如：
+
+    class Main(ViewFlow):
+
+        def create_nodes(self):
+            return [
+                {
+                    'cls': StartNode,
+                    'id': 'start',
+                    'next': 'node1'
+                },
+                {
+                    'cls': Node1,
+                    'id': 'node1',
+                    'next': 'stop'
+                },
+                {
+                    'cls': StopNode,
+                    'id': 'stop'
+                }
+            ]
+        
+        def before_initialize(inputs, *args, **kwargs):
+            self.shutdown('Flow Error！', response_status=400)
+
+
+## Flow State
+
+
+
+## Flow Steps
+
+`flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据
+
+现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`
+
+    node1 = node.state.steps.get('node1', None)
+

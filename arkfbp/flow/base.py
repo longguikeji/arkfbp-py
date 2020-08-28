@@ -80,7 +80,7 @@ class Flow:
             node = graph_node.instance
             # 运行`node`实例
             outputs = start_node(node, self, graph_node)
-            if self.valid_status():
+            if not self.valid_status():
                 return self.outputs
             graph_node = graph_node.next_graph_node(outputs)
 

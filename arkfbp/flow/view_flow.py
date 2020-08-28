@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils.decorators import classonlymethod
 from django.views import View
 
@@ -13,7 +13,7 @@ class ViewFlow(Flow, View):
 
     # 需要手动设置流的访问方式
     allow_http_method = []
-    response_type = HttpResponse
+    response_type = JsonResponse
     response_status = 200
 
     @classmethod
@@ -43,5 +43,14 @@ class ViewFlow(Flow, View):
 
     @property
     def response(self):
-        self._response = self.response_type(self.outputs, status=self.response_status)
+        try:
+            self._response = self.response_type(self.outputs, status=self.response_status)
+        except TypeError:
+            # 自动识别响应数据类型
+            if type(self.outputs) == str:
+                return HttpResponse(self.outputs, status=self.response_status)
+            if type(self.outputs) == int:
+                return HttpResponse(str(self.outputs), status=self.response_status)
+            if type(self.outputs) == dict:
+                return JsonResponse(self.outputs, status=self.response_status)
         return self._response
