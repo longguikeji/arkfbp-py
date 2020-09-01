@@ -112,7 +112,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # Advanced usage
 
-## Global Hook Flow
+## GlobalHookFlow
 
 全局钩子式工作流运行的场景适用于：
 
@@ -162,8 +162,15 @@ arkfbp-py is the python implementation of the arkfbp.
     ]
     MIDDLEWARE = [
         ...
-        'hook.HookFlow'
+        'hook.HookFlow',
+        'hook.HookFlow1',
+        'hook.HookFlow2',
     ]
+
+### HookFlow的执行顺序
+
+`GlobalHookFlow`的执行顺序与`django`原生`Middleware`执行顺序一致，
+before_route()、before_flow()的执行顺序依次为从上至下；after_flow()、before_exception()则为从下至上。
 
 ## Flow Hook
 

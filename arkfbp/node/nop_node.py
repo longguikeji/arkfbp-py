@@ -11,5 +11,5 @@ class NopNode(Node):
     name = _NODE_NAME
     kind = _NODE_KIND
 
-    def run(self):
+    def run(self, *args, **kwargs):
         return None

@@ -35,6 +35,12 @@ class Flow:
         self._status = 'CREATED'
         # 根据 Nodes & Edges 设置 next
 
+    def __str__(self):
+        return f'Flow: {self.__class__}'
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def status(self):
         return self._status
@@ -70,7 +76,7 @@ class Flow:
         """flow can override this function"""
         return self.state
 
-    def main(self, inputs=None):
+    def main(self, inputs=None, *args, **kwargs):
         if inputs is not None:
             self.inputs = inputs
             self.outputs = inputs
@@ -83,7 +89,7 @@ class Flow:
             graph_node = graph_parser.parse_graph_node(graph_node)
             node = graph_node.instance
             # 运行`node`实例
-            outputs = start_node(node, self, graph_node)
+            outputs = start_node(node, self, graph_node, *args, **kwargs)
             if not self.valid_status():
                 return self.outputs
             graph_node = graph_node.next_graph_node(outputs)
@@ -104,14 +110,14 @@ class Flow:
         if not self.debug:
             sys.stdout.write('Flow Debug OFF')
             return
-        sys.stdout.write('---------- DEBUG INFORMATION -------------\n\n')
+        sys.stdout.write(f'------------- DEBUG BEGIN ({self}) -------------\n\n')
         for node in self._state.nodes:
             sys.stdout.write('****** NODE ******\n')
             sys.stdout.write(f'ID: {node.id}\n')
             sys.stdout.write(f'Inputs: {node.inputs}\n')
             sys.stdout.write(f'Outputs: {node.outputs}\n')
             sys.stdout.write('****** END *******\n\n')
-        sys.stdout.write('---------- END DEBUG INFORMATION -------------\n')
+        sys.stdout.write(f'------------- DEBUG END ({self}) -------------\n')
 
     def before_initialize(self, *args, **kwargs):
         """overridden by user"""
@@ -153,7 +159,7 @@ def start_flow(flow, inputs, *args, **kwargs):
         flow.before_execute(inputs, *args, **kwargs)
 
     if flow.valid_status():
-        ret = flow.main(inputs)
+        ret = flow.main(inputs, *args, **kwargs)
 
     if flow.valid_status():
         flow.executed(inputs, ret, *args, **kwargs)

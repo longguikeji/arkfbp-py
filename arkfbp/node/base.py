@@ -70,60 +70,60 @@ class Node:
     def inputs(self, inputs):
         self._inputs = inputs
 
-    def on_completed(self):
+    def on_completed(self, *args, **kwargs):
         """overridden by user"""
 
-    def on_error(self):
+    def on_error(self, *args, **kwargs):
         """overridden by user"""
 
-    def created(self):
+    def created(self, *args, **kwargs):
         """overridden by user"""
 
-    def before_initialize(self):
+    def before_initialize(self, *args, **kwargs):
         """overridden by user"""
 
-    def init(self):
+    def init(self, *args, **kwargs):
         """overridden by user"""
 
-    def initialized(self):
+    def initialized(self, *args, **kwargs):
         """overridden by user"""
 
-    def before_execute(self):
+    def before_execute(self, *args, **kwargs):
         """overridden by user"""
 
-    def executed(self):
+    def executed(self, *args, **kwargs):
         """overridden by user"""
 
-    def before_destroy(self):
+    def before_destroy(self, *args, **kwargs):
         """overridden by user"""
 
 
-def start_node(node, flow, graph_node):
+def start_node(node, flow, graph_node, *args, **kwargs):
     node.flow = flow
 
     if flow.valid_status():
-        node.created()
+        node.created(*args, **kwargs)
 
     if flow.valid_status():
-        node.before_initialize()
+        node.before_initialize(*args, **kwargs)
 
     if flow.valid_status():
-        node.init()
+        node.init(*args, **kwargs)
         node.id = graph_node.id
         node.state = flow.state
         node.inputs = flow.outputs
 
     if flow.valid_status():
-        node.initialized()
+        node.initialized(*args, **kwargs)
 
     if flow.valid_status():
-        node.before_execute()
+        node.before_execute(*args, **kwargs)
 
     if flow.valid_status():
-        outputs = node.run()
+        outputs = node.run(*args, **kwargs)
 
     if flow.valid_status():
-        node.executed()
+        node.executed(*args, **kwargs)
         node.outputs = outputs
         flow.outputs = outputs
         flow.state.push(node)

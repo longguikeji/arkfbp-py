@@ -33,7 +33,7 @@ class APINode(Node):
     def __init__(self, *args, **kwargs):
         super(Node).__init__(*args, **kwargs)
 
-    def run(self):
+    def run(self, *args, **kwargs):
         if self.mode == DIRECT_MODE:
             return self._request_direct()
 

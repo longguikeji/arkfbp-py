@@ -1,5 +1,6 @@
 from django.utils.deprecation import MiddlewareMixin
 
+from . import start_flow
 from ..flow import Flow
 from ..request import HttpRequest
 
@@ -36,24 +37,22 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
         self.set_mount()
         super(GlobalHookFlow, self).__init__(get_response)
 
-    def execute_hook(self, hook_switch, request):
+    def execute_hook(self, hook_switch, request, *args, **kwargs):
         inputs = self.convert_request(request)
-        return self.main(inputs) if hook_switch else None
+        return start_flow(self, inputs, *args, **kwargs) if hook_switch else None
 
     def process_request(self, request):
         self.execute_hook(self.before_route, request)
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        """TODO 处理参数"""
-        self.execute_hook(self.before_flow, request)
+        flow_class = view_func.__dict__.get('view_class', None)
+        self.execute_hook(self.before_flow, request, flow_class=flow_class)
 
     def process_exception(self, request, exception):
-        """TODO 处理参数"""
-        self.execute_hook(self.before_exception, request)
+        self.execute_hook(self.before_exception, request, exception=exception)
 
     def process_response(self, request, response):
-        """TODO 处理参数"""
-        self.execute_hook(self.after_flow, request)
+        self.execute_hook(self.after_flow, request, response=response)
         return response
 
     def set_mount(self):
