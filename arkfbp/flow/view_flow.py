@@ -2,7 +2,8 @@ from django.http import JsonResponse, HttpResponse
 from django.utils.decorators import classonlymethod
 from django.views import View
 
-from ..flow import Flow, start_flow
+from ..flow import Flow
+from ..flow.executer import FlowExecuter
 from ..request import HttpRequest
 
 
@@ -23,7 +24,7 @@ class ViewFlow(Flow, View):
     def dispatch(self, request, *args, **kwargs):
         request = self.convert_request(request)
         if request.method.upper() in self.allow_http_method:
-            return start_flow(self, request)
+            return FlowExecuter.start_flow(self, request)
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     @classonlymethod

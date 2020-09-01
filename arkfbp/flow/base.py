@@ -1,5 +1,4 @@
 import abc
-import os
 import sys
 
 import six
@@ -142,30 +141,3 @@ class Flow:
             return False
 
         return True
-
-
-def start_flow(flow, inputs, *args, **kwargs):
-
-    flow.request = inputs
-    flow.before_initialize(inputs, *args, **kwargs)
-
-    if flow.valid_status():
-        flow.init(inputs, *args, **kwargs)
-
-    if flow.valid_status():
-        flow.initialized(inputs, *args, **kwargs)
-
-    if flow.valid_status():
-        flow.before_execute(inputs, *args, **kwargs)
-
-    if flow.valid_status():
-        ret = flow.main(inputs, *args, **kwargs)
-
-    if flow.valid_status():
-        flow.executed(inputs, ret, *args, **kwargs)
-
-    if flow.valid_status():
-        flow.before_destroy(inputs, ret, *args, **kwargs)
-
-    flow.log_debug()
-    return flow.response

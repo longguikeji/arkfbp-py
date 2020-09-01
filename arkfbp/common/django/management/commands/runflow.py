@@ -1,10 +1,7 @@
 import importlib
-import json
 
+from arkfbp.flow.executer import FlowExecuter
 from django.core.management.base import BaseCommand, CommandError
-from django.test import RequestFactory
-
-from arkfbp.flow import ViewFlow, start_flow
 
 
 class Command(BaseCommand):
@@ -19,7 +16,7 @@ class Command(BaseCommand):
         try:
             clz = importlib.import_module(f'{path}.main')
             instance = clz.Main()
-            cli_start_flow(instance, input, http_method=http_method, header=header)
+            FlowExecuter.cli_start_flow(instance, input, http_method=http_method, header=header)
         except ModuleNotFoundError:
             raise CommandError('Run failed, Invalid flow.')
 
@@ -28,32 +25,3 @@ class Command(BaseCommand):
         parser.add_argument('--input', type=str, help='Input data at the beginning of the flow.')
         parser.add_argument('--http_method', type=str, help='HTTP method of flow.')
         parser.add_argument('--header', type=str, help='HTTP method of flow.')
-
-
-def cli_start_flow(flow, inputs, *args, **kwargs):
-    """start a flow by cli"""
-    if isinstance(flow, ViewFlow):
-        http_method = kwargs.get('http_method')
-        content_type = kwargs.get('content_type', 'application/json')
-        header = kwargs.get('header')
-        if not http_method:
-            raise CommandError('Lack of parameter: --http_method')
-        if header:
-            header = json.loads(header)
-        # 构造 WSGIRequest 对象
-        request_factory = RequestFactory()
-        if http_method.lower() in ['get']:
-            _inputs = json.loads(inputs)
-            query_string = ''
-            for key, value in _inputs.items():
-                query_string += f'{key}={value}&'
-            query_string = f'?{query_string[:-1]}'
-            request = request_factory.generic(http_method, query_string, content_type=content_type, **header)
-        elif http_method.lower() in ['post', 'put', 'patch', 'delete']:
-            request = request_factory.generic(http_method, '', data=inputs, content_type=content_type, **header)
-        else:
-            raise CommandError('Invalid parameter: --http_method')
-
-        inputs = ViewFlow.convert_request(request)
-
-    start_flow(flow, inputs)
