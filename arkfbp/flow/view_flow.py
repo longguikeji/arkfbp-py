@@ -4,7 +4,7 @@ from django.views import View
 
 from ..flow import Flow
 from ..flow.executer import FlowExecuter
-from ..request import convert_request
+from ..request import convert_request, HttpRequest
 
 
 class ViewFlow(Flow, View):
@@ -52,3 +52,6 @@ class ViewFlow(Flow, View):
             if type(self.outputs) == dict:
                 return JsonResponse(self.outputs, status=self.response_status)
         return self._response
+
+    def main(self, inputs=HttpRequest, *args, **kwargs):
+        super(ViewFlow, self).main(inputs, *args, **kwargs)

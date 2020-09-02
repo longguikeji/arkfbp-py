@@ -1,7 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 
 from ..flow import Flow
-from ..request import convert_request
+from ..request import convert_request, HttpRequest
 from ..flow.executer import FlowExecuter
 
 
@@ -60,3 +60,6 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
         Sets the global hook flow mount location,
         which can be overridden by subclasses
         """
+
+    def main(self, inputs=HttpRequest, *args, **kwargs):
+        super(GlobalHookFlow, self).main(inputs, *args, **kwargs)

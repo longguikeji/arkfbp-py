@@ -6,9 +6,9 @@ from django.core.handlers.wsgi import WSGIRequest
 
 class HttpRequest(WSGIRequest):
 	"""A HTTP request extends WSGIRequest."""
-
-	def __init__(self, environ):
-		super(HttpRequest, self).__init__(environ)
+	def __init__(self, request):
+		self._request = request
+		super(HttpRequest, self).__init__(request.environ)
 		self._str = ''
 		self._data = self._merge_data()
 		self.extra_data = {}
@@ -17,13 +17,13 @@ class HttpRequest(WSGIRequest):
 		"""
 		Merge the GET and POST data together
 		"""
-		get_data = self.GET
-		post_data = self.POST
+		get_data = self._request.GET
+		post_data = self._request.POST
 		# 1）`body`为`form-data`、`application/x-www-form-urlencoded`格式数据
 		if post_data:
 			return {**get_data, **post_data}
 		# 2）`body`为`json`、`text`等其他形式数据
-		post_body = self.body
+		post_body = self._request.body
 		if not post_body:
 			return {**get_data}
 		json_body = dict()
@@ -58,11 +58,14 @@ class HttpRequest(WSGIRequest):
 		"""
 		return self.data.get(*args, **kwargs)
 
+	@property
+	def request(self):
+		return self._request
+
 
 def convert_request(request):
 	if not request.__dict__.get('arkfbp_request', None):
-		_request = HttpRequest(request.environ)
+		_request = HttpRequest(request)
 		request.__dict__.update(arkfbp_request=_request)
-		_request.__dict__.update(request=request)
 
 	return request.__dict__.get('arkfbp_request')
