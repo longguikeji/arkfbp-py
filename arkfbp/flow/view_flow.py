@@ -4,7 +4,7 @@ from django.views import View
 
 from ..flow import Flow
 from ..flow.executer import FlowExecuter
-from ..request import HttpRequest
+from ..request import convert_request
 
 
 class ViewFlow(Flow, View):
@@ -22,7 +22,7 @@ class ViewFlow(Flow, View):
         cls.allow_http_method = method
 
     def dispatch(self, request, *args, **kwargs):
-        request = self.convert_request(request)
+        request = convert_request(request)
         if request.method.upper() in self.allow_http_method:
             return FlowExecuter.start_flow(self, request)
         return self.http_method_not_allowed(request, *args, **kwargs)
@@ -34,12 +34,6 @@ class ViewFlow(Flow, View):
         """
         cls.set_http_method(http_method)
         return super().as_view(**initkwargs)
-
-    @classmethod
-    def convert_request(cls, request):
-        if not request.__dict__.get('arkfbp_request', None):
-            request.__dict__.update(arkfbp_request=HttpRequest(request.environ))
-        return request
 
     def shutdown(self, outputs, **kwargs):
         self.response_status = kwargs.get('response_status', self.response_status)

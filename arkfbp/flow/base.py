@@ -95,11 +95,6 @@ class Flow:
 
         return self.outputs
 
-    @classmethod
-    def convert_request(cls, request):
-        """Convert the framework's Request object to the ArkFBP's Request object"""
-        return request
-
     def shutdown(self, outputs):
         self._status = FLOW_STOPPED
         self.outputs = outputs
