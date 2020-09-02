@@ -61,5 +61,8 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
         which can be overridden by subclasses
         """
 
-    def convert_request(self, request):
-        return HttpRequest(request.environ)
+    @classmethod
+    def convert_request(cls, request):
+        _request = HttpRequest(request.environ)
+        request.__dict__.update(arkfbp_request=_request)
+        return request

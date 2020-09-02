@@ -36,9 +36,9 @@ class ViewFlow(Flow, View):
         return super().as_view(**initkwargs)
 
     @classmethod
-    def convert_request(cls, _request):
-        request = HttpRequest(_request.environ)
-        request.__dict__.update(_request.__dict__)
+    def convert_request(cls, request):
+        if not request.__dict__.get('arkfbp_request', None):
+            request.__dict__.update(arkfbp_request=HttpRequest(request.environ))
         return request
 
     def shutdown(self, outputs, **kwargs):
