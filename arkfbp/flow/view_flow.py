@@ -39,7 +39,7 @@ class ViewFlow(Flow, View):
     def convert_request(cls, _request):
         request = HttpRequest(_request.environ)
         request.__dict__.update(_request.__dict__)
-        return HttpRequest(request.environ)
+        return request
 
     def shutdown(self, outputs, **kwargs):
         self.response_status = kwargs.get('response_status', self.response_status)
