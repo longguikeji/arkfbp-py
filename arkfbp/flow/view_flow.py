@@ -36,7 +36,9 @@ class ViewFlow(Flow, View):
         return super().as_view(**initkwargs)
 
     @classmethod
-    def convert_request(cls, request):
+    def convert_request(cls, _request):
+        request = HttpRequest(_request.environ)
+        request.__dict__.update(_request.__dict__)
         return HttpRequest(request.environ)
 
     def shutdown(self, outputs, **kwargs):
