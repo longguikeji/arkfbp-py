@@ -34,11 +34,11 @@ arkfbp-py is the python implementation of the arkfbp.
 
 4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流:
 
-    arkfbp startflow flow1
+    arkfbp createflow flow1
  
 5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
 
-    arkfbp startnode node1
+    arkfbp createnode node1
 
 6、在`Node1`的`run`方法示例如下:
 
