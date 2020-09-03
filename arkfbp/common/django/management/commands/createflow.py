@@ -31,10 +31,12 @@ class Command(TemplateCommand):
             flow_base_class_value = clz
         options.update(flow_base_class=flow_base_class_value)
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/flow_template')
-        _target = os.path.join(target, app_name)
-        if not os.path.exists(_target):
-            os.mkdir(_target)
-        super().handle('app', app_name, _target, **options)
+        if target:
+            _target = os.path.join(target, app_name)
+            if not os.path.exists(_target):
+                os.mkdir(_target)
+            target = _target
+        super().handle('app', app_name, target, **options)
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
