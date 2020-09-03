@@ -1,3 +1,4 @@
+import importlib
 import os
 from os import path
 import shutil
@@ -9,6 +10,20 @@ from django.core.management.templates import TemplateCommand
 from django.template import Context, Engine
 
 import arkfbp
+
+
+NODE_CLASS_MAP = {
+    'base': 'Node',
+    'start': 'StartNode',
+    'stop': 'StopNode',
+    'function': 'FunctionNode',
+    'if': 'IFNode',
+    'loop': 'LoopNode',
+    'nop': 'NopNode',
+    'api': 'APINode',
+    'test': 'TestNode',
+    'trigger_flow': 'TriggerFlowNode',
+}
 
 
 class Command(TemplateCommand):
@@ -36,7 +51,8 @@ class Command(TemplateCommand):
 
     def handle(self, **options):
         node_name = options.pop('name')
-        target = options.pop('directory')
+        target = options.pop('topdir')
+        base_class = options.pop('class')
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/node_template')
 
         if target is None:
@@ -58,12 +74,20 @@ class Command(TemplateCommand):
         base_subdir = 'app_template'
         base_directory = 'app_directory'
         camel_case_name = 'camel_case_node_name'
+        node_base_class = 'node_base_class'
+        node_base_class_value = NODE_CLASS_MAP['base']
+        if base_class:
+            clz = NODE_CLASS_MAP.get(base_class.lower(), None)
+            if not clz:
+                raise CommandError('Invalid Node Class.')
+            node_base_class_value = clz
         camel_case_value = self._class_name(node_name)
         context = Context({
             **options,
             base_name: self.app_name,
             base_directory: top_dir,
             camel_case_name: camel_case_value,
+            node_base_class: node_base_class_value,
         }, autoescape=False)
         template_dir = self.handle_template(options['template'], base_subdir)
         prefix_length = len(template_dir) + 1
@@ -109,3 +133,8 @@ class Command(TemplateCommand):
                         "Notice: Couldn't set permission bits on %s. You're "
                         "probably using an uncommon filesystem setup. No "
                         "problem." % new_path, self.style.NOTICE)
+
+    def add_arguments(self, parser):
+        super().add_arguments(parser)
+        parser.add_argument('--topdir', type=str, help='Specifies the file path for the node.')
+        parser.add_argument('--class', type=str, help='Select the class that the node needs to inherit from.')

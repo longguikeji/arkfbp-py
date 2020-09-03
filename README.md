@@ -244,3 +244,41 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`
 
     node1 = node.state.steps.get('node1', None)
+
+
+## New Feature For CLI
+
+### Create Flow
+
+现在你可以通过指定目录和基类来创建一个工作流，`--topdir`参数代表创建流的所在目录，`--class`参数代表工作流期望继承的基类流。
+
+    python3 manage.py createflow flow1 --topdir demo/flows --class base
+
+详解：--class 参数可选值如下
+
+    FLOW_CLASS_MAP = {
+        'base': 'Flow',
+        'view': 'ViewFlow',
+        'hook': 'GlobalHookFlow',
+    }
+    
+### Create Node
+
+现在你可以通过指定目录和基类来创建一个流节点，`--topdir`参数代表创建节点的所在目录，`--class`参数代表节点期望继承的基类节点。
+
+    python3 manage.py createnode node1 --topdir demo/flows/flow1/nodes --class base
+
+详解：--class 参数可选值如下
+
+    NODE_CLASS_MAP = {
+        'base': 'Node',
+        'start': 'StartNode',
+        'stop': 'StopNode',
+        'function': 'FunctionNode',
+        'if': 'IFNode',
+        'loop': 'LoopNode',
+        'nop': 'NopNode',
+        'api': 'APINode',
+        'test': 'TestNode',
+        'trigger_flow': 'TriggerFlowNode',
+    }

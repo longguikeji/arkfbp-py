@@ -1,8 +1,8 @@
-from arkfbp.node import FunctionNode
+from arkfbp.node import {{ node_base_class }}
 
 
 # Editor your node here.
-class {{ camel_case_node_name }}(FunctionNode):
+class {{ camel_case_node_name }}({{ node_base_class }}):
 
     def run(self, *args, **kwargs):
         print(f'Hello, {{ camel_case_node_name }}!')
