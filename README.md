@@ -260,12 +260,16 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 详解：--class 参数可选值如下
 
-    FLOW_CLASS_MAP = {
+    {
         'base': 'Flow',
         'view': 'ViewFlow',
         'hook': 'GlobalHookFlow',
     }
     
+也可通过命令行获取相关信息
+
+    arkfbp createflow -h
+
 ### Create Node
 
 现在你可以通过指定目录和基类来创建一个流节点，`--topdir`参数代表创建节点的所在目录，`--class`参数代表节点期望继承的基类节点。
@@ -278,7 +282,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 详解：--class 参数可选值如下
 
-    NODE_CLASS_MAP = {
+    {
         'base': 'Node',
         'start': 'StartNode',
         'stop': 'StopNode',
@@ -290,3 +294,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
         'test': 'TestNode',
         'trigger_flow': 'TriggerFlowNode',
     }
+
+也可通过命令行获取相关信息
+
+    arkfbp createnode -h
