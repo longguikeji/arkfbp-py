@@ -2,9 +2,9 @@ import abc
 import sys
 
 import six
+from arkfbp.flow.executer import FlowExecuter
 
 from ..graph import Graph, GraphParser
-from ..node.base import start_node
 from ..state import State, AppState
 
 
@@ -88,7 +88,7 @@ class Flow:
             graph_node = graph_parser.parse_graph_node(graph_node)
             node = graph_node.instance
             # 运行`node`实例
-            outputs = start_node(node, self, graph_node, *args, **kwargs)
+            outputs = FlowExecuter.start_node(node, self, graph_node, *args, **kwargs)
             if not self.valid_status():
                 return self.outputs
             graph_node = graph_node.next_graph_node(outputs)

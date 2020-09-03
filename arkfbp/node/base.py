@@ -96,36 +96,3 @@ class Node:
 
     def before_destroy(self, *args, **kwargs):
         """overridden by user"""
-
-
-def start_node(node, flow, graph_node, *args, **kwargs):
-    node.flow = flow
-
-    if flow.valid_status():
-        node.created(*args, **kwargs)
-
-    if flow.valid_status():
-        node.before_initialize(*args, **kwargs)
-
-    if flow.valid_status():
-        node.init(*args, **kwargs)
-        node.id = graph_node.id
-        node.state = flow.state
-        node.inputs = flow.outputs
-
-    if flow.valid_status():
-        node.initialized(*args, **kwargs)
-
-    if flow.valid_status():
-        node.before_execute(*args, **kwargs)
-
-    if flow.valid_status():
-        outputs = node.run(*args, **kwargs)
-
-    if flow.valid_status():
-        node.executed(*args, **kwargs)
-        node.outputs = outputs
-        flow.outputs = outputs
-        flow.state.push(node)
-
-    return outputs
