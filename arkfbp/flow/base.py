@@ -102,7 +102,6 @@ class Flow:
 
     def log_debug(self):
         if not self.debug:
-            sys.stdout.write('Flow Debug OFF')
             return
         sys.stdout.write(f'------------- DEBUG BEGIN ({self}) -------------\n\n')
         for node in self._state.nodes:
