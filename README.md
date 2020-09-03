@@ -18,9 +18,9 @@ arkfbp-py is the python implementation of the arkfbp.
 
 1、新建名为`demo`的项目:
 
-    arkfbp-admin startproject demo
+    arkfbp startproject demo
 
-2、此时可使用`arkfbp-admin`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
+2、此时可使用`arkfbp`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
 
         from django.core.management import execute_from_command_line
 
@@ -30,15 +30,15 @@ arkfbp-py is the python implementation of the arkfbp.
 
 3、新建名为`app1`的应用:
 
-    arkfbp-admin startapp app1
+    arkfbp startapp app1
 
 4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流:
 
-    arkfbp-admin startflow flow1
+    arkfbp startflow flow1
  
 5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
 
-    arkfbp-admin startnode node1
+    arkfbp startnode node1
 
 6、在`Node1`的`run`方法示例如下:
 
@@ -253,6 +253,10 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 现在你可以通过指定目录和基类来创建一个工作流，`--topdir`参数代表创建流的所在目录，`--class`参数代表工作流期望继承的基类流。
 
     python3 manage.py createflow flow1 --topdir demo/flows --class base
+    
+    或者
+    
+    arkfbp createflow flow1 --topdir demo/flows --class base 
 
 详解：--class 参数可选值如下
 
@@ -267,6 +271,10 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 现在你可以通过指定目录和基类来创建一个流节点，`--topdir`参数代表创建节点的所在目录，`--class`参数代表节点期望继承的基类节点。
 
     python3 manage.py createnode node1 --topdir demo/flows/flow1/nodes --class base
+    
+    或者
+    
+    arkfbp createnode node1 --topdir demo/flows/flow1/nodes --class base
 
 详解：--class 参数可选值如下
 
