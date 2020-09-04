@@ -1,7 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 
 from ..flow import Flow
-from ..request import convert_request, HttpRequest
+from ..request import process_request
 from ..flow.executer import FlowExecuter
 
 
@@ -38,7 +38,7 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
         super(GlobalHookFlow, self).__init__(get_response)
 
     def execute_hook(self, hook_switch, request, *args, **kwargs):
-        inputs = convert_request(request)
+        inputs = process_request(request)
         return FlowExecuter.start_flow(self, inputs, *args, **kwargs) if hook_switch else None
 
     def process_request(self, request):

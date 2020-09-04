@@ -298,3 +298,25 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 也可通过命令行获取相关信息
 
     arkfbp createnode -h
+
+## ViewFlow inputs
+
+`ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
+
+### data
+
+`data`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
+
+### extra_data
+
+你可以在`extra_data`中存放你想要传递下去的任何数据
+
+### str
+
+`str`包含了请求体中的字符串信息
+
+_注意：你可以随意为inputs增加任何属性，例如：_
+    
+    inputs.attr = {}
+
+_这样你就为`inputs`增加了`attr`的属性_

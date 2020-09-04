@@ -4,7 +4,7 @@ from django.views import View
 
 from ..flow import Flow
 from ..flow.executer import FlowExecuter
-from ..request import convert_request, HttpRequest
+from ..request import process_request
 
 
 class ViewFlow(Flow, View):
@@ -22,9 +22,9 @@ class ViewFlow(Flow, View):
         cls.allow_http_method = method
 
     def dispatch(self, request, *args, **kwargs):
-        request = convert_request(request)
+        inputs = process_request(request)
         if request.method.upper() in self.allow_http_method:
-            return FlowExecuter.start_flow(self, request)
+            return FlowExecuter.start_flow(self, inputs)
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     @classonlymethod
