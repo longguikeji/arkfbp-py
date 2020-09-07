@@ -4,7 +4,6 @@ from django.views import View
 
 from ..flow import Flow
 from ..flow.executer import FlowExecuter
-from ..request import process_request
 
 
 class ViewFlow(Flow, View):
@@ -22,9 +21,8 @@ class ViewFlow(Flow, View):
         cls.allow_http_method = method
 
     def dispatch(self, request, *args, **kwargs):
-        inputs = process_request(request)
         if request.method.upper() in self.allow_http_method:
-            return FlowExecuter.start_flow(self, inputs)
+            return FlowExecuter.start_flow(self, request)
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     @classonlymethod
@@ -52,6 +50,3 @@ class ViewFlow(Flow, View):
             if type(self.outputs) == dict:
                 return JsonResponse(self.outputs, status=self.response_status)
         return self._response
-
-    def main(self, inputs=HttpRequest, *args, **kwargs):
-        super(ViewFlow, self).main(inputs, *args, **kwargs)
