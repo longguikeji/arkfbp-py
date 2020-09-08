@@ -83,7 +83,7 @@ class GraphParser:
             if graph_node['id'] == node_id:
                 return graph_node
 
-        raise Exception('node id not found {}'.format(node_id))
+        raise Exception(f'Node ID:{node_id} not found')
 
     def get_entry_node(self):
         if len(self.graph.graph_nodes) == 0:

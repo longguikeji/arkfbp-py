@@ -22,7 +22,7 @@ class Node:
         self._flow = None
 
     def __str__(self):
-        return f'Node: {self.id}:{self.name}:{self.kind}'
+        return f'Node: {self.id}:({self.name}:{self.kind})'
 
     def __repr__(self):
         return f'ID:{self.id} Kind:{self.kind} Class:{self.__class__}'

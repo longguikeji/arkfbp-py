@@ -32,6 +32,7 @@ class Flow:
         self._request = None
         self._response = None
         self._status = 'CREATED'
+        self.error = None
         # 根据 Nodes & Edges 设置 next
 
     def __str__(self):
@@ -80,18 +81,20 @@ class Flow:
             self.inputs = inputs
             self.outputs = inputs
         self._status = FLOW_RUNNING
-
-        graph_parser = GraphParser(self.graph)
-        graph_node = graph_parser.get_entry_node()
-        while graph_node:
-            # 获取`node`实例
-            graph_node = graph_parser.parse_graph_node(graph_node)
-            node = graph_node.instance
-            # 运行`node`实例
-            outputs = FlowExecuter.start_node(node, self, graph_node, *args, **kwargs)
-            if not self.valid_status():
-                return self.outputs
-            graph_node = graph_node.next_graph_node(outputs)
+        try:
+            graph_parser = GraphParser(self.graph)
+            graph_node = graph_parser.get_entry_node()
+            while graph_node:
+                # 获取`node`实例
+                graph_node = graph_parser.parse_graph_node(graph_node)
+                node = graph_node.instance
+                # 运行`node`实例
+                outputs = FlowExecuter.start_node(node, self, graph_node, *args, **kwargs)
+                if not self.valid_status():
+                    return self.outputs
+                graph_node = graph_node.next_graph_node(outputs)
+        except Exception as e:
+            self.terminate(e)
 
         return self.outputs
 
@@ -100,16 +103,23 @@ class Flow:
         self.outputs = outputs
         return self.response
 
+    def terminate(self, exception):
+        self._status = FLOW_ERROR
+        self.error = exception
+
     def log_debug(self):
         if not self.debug:
             return
+
         sys.stdout.write(f'------------- DEBUG BEGIN ({self}) -------------\n\n')
         for node in self._state.nodes:
-            sys.stdout.write('****** NODE ******\n')
+            sys.stdout.write(f'****** {node} ******\n')
             sys.stdout.write(f'ID: {node.id}\n')
             sys.stdout.write(f'Inputs: {node.inputs}\n')
             sys.stdout.write(f'Outputs: {node.outputs}\n')
             sys.stdout.write('****** END *******\n\n')
+        if self.valid_status(target=FLOW_ERROR):
+            raise self.error
         sys.stdout.write(f'------------- DEBUG END ({self}) -------------\n')
 
     def before_initialize(self, *args, **kwargs):
@@ -130,8 +140,11 @@ class Flow:
     def before_destroy(self, inputs, ret, *args, **kwargs):
         """overridden by user"""
 
-    def valid_status(self):
-        if self.status in [FLOW_STOPPED, FLOW_ERROR]:
+    def valid_status(self, target=None):
+        if target in FLOW_STATUS:
+            return True if target == self._status else False
+
+        if self._status in [FLOW_STOPPED, FLOW_ERROR]:
             return False
 
         return True

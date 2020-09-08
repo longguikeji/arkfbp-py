@@ -7,7 +7,7 @@ from ..flow.executer import FlowExecuter
 
 class GlobalHookFlow(MiddlewareMixin, Flow):
     """
-    Base Hook Flow
+    Base Hook Flow for Django Web Framework
     When 'BaseHookFlow' is initialized, the 'set_mount' method needs
     to be overridden to specify where the hook should be opened.
 
