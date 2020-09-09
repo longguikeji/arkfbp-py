@@ -1,8 +1,8 @@
-from .node import IFNode
+from cachetools import cached
+from cachetools.keys import hashkey
 
+from .node import IFNode, StartNode
 
-# TODO 将有序流保存在环境变量中无需每次都进行流的定向查找
-# TODO 每次需要检查流的结构是否更新
 
 class Graph:
 
@@ -85,13 +85,14 @@ class GraphParser:
 
         raise Exception(f'Node ID:{node_id} not found')
 
+    @cached(cache={}, key=lambda self: hashkey(self.graph))
     def get_entry_node(self):
         if len(self.graph.graph_nodes) == 0:
             return None
-        # TODO 遍历费时
+
         for graph_node in self.graph.graph_nodes:
             _graph_node = self.parse_graph_node(graph_node)
-            if _graph_node.cls.kind == 'start':
+            if _graph_node.cls.kind == StartNode.kind:
                 return _graph_node.graph_node
 
         return self.graph.graph_nodes[0]

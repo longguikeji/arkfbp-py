@@ -2,14 +2,17 @@ import abc
 import sys
 
 import six
+from cachetools import cached
+from cachetools.keys import hashkey
+
 from arkfbp.flow.executer import FlowExecuter
 
 from ..graph import Graph, GraphParser
 from ..state import State, AppState
 
 
-FLOW_CREATED = 'CREATED'
 FLOW_RUNNING = 'RUNNING'
+FLOW_CREATED = 'CREATED'
 FLOW_ERROR = 'ERROR'
 FLOW_STOPPED = 'STOPPED'
 FLOW_STATUS = [FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED]
@@ -61,6 +64,7 @@ class Flow:
     def response(self):
         return self.outputs
 
+    @cached(cache={}, key=lambda self: hashkey(self.__str__()))
     def create_graph(self):
         """Returns the node information in JSON form"""
         g = Graph()
