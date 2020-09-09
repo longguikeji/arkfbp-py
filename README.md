@@ -272,13 +272,13 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 ### Create Node
 
-现在你可以通过指定目录和基类来创建一个流节点，`--topdir`参数代表创建节点的所在目录，`--class`参数代表节点期望继承的基类节点。
+现在你可以通过指定目录和基类来创建一个流节点，`--topdir`参数代表创建节点的所在目录，`--class`参数代表节点期望继承的基类节点, `--id`参数代表节点在流中的唯一标识。
 
-    python3 manage.py createnode node1 --topdir demo/flows/flow1/nodes --class base
+    python3 manage.py createnode node1 --topdir demo/flows/flow1/nodes --class base --id node1
     
     或者
     
-    arkfbp-py createnode node1 --topdir demo/flows/flow1/nodes --class base
+    arkfbp-py createnode node1 --topdir demo/flows/flow1/nodes --class base --id node1
 
 详解：--class 参数可选值如下
 
