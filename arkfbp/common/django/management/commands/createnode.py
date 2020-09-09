@@ -44,6 +44,10 @@ class Command(TemplateCommand):
         node_name = options.pop('name')
         target = options.pop('topdir')
         base_class = options.pop('class')
+        node_id = options.pop('id')
+
+        if node_id is None:
+            raise CommandError('Node ID Required.')
 
         app_name = self._file_name(node_name)
         camel_case_node_name = self._class_name(node_name)
@@ -58,6 +62,7 @@ class Command(TemplateCommand):
             target = os.getcwd()
 
         options.update(camel_case_node_name=camel_case_node_name)
+        options.update(node_id=node_id)
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/node_template')
 
         super().handle('app', app_name, target, **options)
@@ -67,3 +72,4 @@ class Command(TemplateCommand):
         parser.add_argument('--topdir', type=str, help='Specifies the file path for the node.')
         parser.add_argument('--class', type=str, help='Select the class that the node needs to inherit from.',
                             default='base', choices=NODE_CLASS_MAP.keys())
+        parser.add_argument('--id', type=str, help='Specifies the ID for the node.')
