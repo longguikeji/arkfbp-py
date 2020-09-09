@@ -18,9 +18,9 @@ arkfbp-py is the python implementation of the arkfbp.
 
 1、新建名为`demo`的项目:
 
-    arkfbp startproject demo
+    arkfbp-py startproject demo
 
-2、此时可使用`arkfbp`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
+2、此时可使用`arkfbp-py`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
 
         from django.core.management import execute_from_command_line
 
@@ -30,15 +30,15 @@ arkfbp-py is the python implementation of the arkfbp.
 
 3、新建名为`app1`的应用:
 
-    arkfbp startapp app1
+    arkfbp-py startapp app1
 
 4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流:
 
-    arkfbp createflow flow1
+    arkfbp-py createflow flow1
  
 5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
 
-    arkfbp createnode node1
+    arkfbp-py createnode node1
 
 6、在`Node1`的`run`方法示例如下:
 
@@ -256,7 +256,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
     
     或者
     
-    arkfbp createflow flow1 --topdir demo/flows --class base 
+    arkfbp-py createflow flow1 --topdir demo/flows --class base 
 
 详解：--class 参数可选值如下
 
@@ -268,7 +268,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
     
 也可通过命令行获取相关信息
 
-    arkfbp createflow -h
+    arkfbp-py createflow -h
 
 ### Create Node
 
@@ -278,7 +278,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
     
     或者
     
-    arkfbp createnode node1 --topdir demo/flows/flow1/nodes --class base
+    arkfbp-py createnode node1 --topdir demo/flows/flow1/nodes --class base
 
 详解：--class 参数可选值如下
 
@@ -297,7 +297,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 也可通过命令行获取相关信息
 
-    arkfbp createnode -h
+    arkfbp-py createnode -h
 
 ## ViewFlow inputs
 
