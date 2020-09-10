@@ -1,0 +1,9 @@
+"""
+demo URL Configuration
+由ArkFBP自动生成，详情描述暂略...
+"""
+from django.urls import path
+{{ import_module }}
+
+
+urlpatterns = {{ routes_info }}

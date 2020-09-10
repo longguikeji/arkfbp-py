@@ -1,0 +1,10 @@
+from arkfbp.node import {{ node_base_class }}
+
+
+# Editor your node here.
+class {{ camel_case_node_name }}({{ node_base_class }}):
+
+    id = '{{ node_id }}'
+
+    def run(self, *args, **kwargs):
+        print(f'Hello, {{ camel_case_node_name }}!')

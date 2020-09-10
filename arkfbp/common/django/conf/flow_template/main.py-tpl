@@ -1,0 +1,19 @@
+from arkfbp.flow import {{ flow_base_class }}
+from arkfbp.node import StartNode, StopNode
+
+
+# Editor your flow here.
+class Main({{ flow_base_class }}):
+
+    def create_nodes(self):
+        return [
+            {
+                'cls': StartNode,
+                'id': 'start',
+                'next': 'stop'
+            },
+            {
+                'cls': StopNode,
+                'id': 'stop'
+            }
+        ]

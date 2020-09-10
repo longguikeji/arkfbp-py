@@ -2,29 +2,45 @@ import copy
 
 
 class State:
+    """
+    Used to record global information for the duration of a workflow.
 
+    steps: {
+            node.id: node,
+            ...,
+        }
+    """
     def __init__(self, init_data=None):
-        self._request = None
-        self._response = None
-        self._data = {}
-        if init_data:
-            self._data = copy.deepcopy(init_data)
+        self._nodes = []
+        self._data = copy.deepcopy(init_data) if init_data else {}
+        self._steps = {}
 
     @property
-    def request(self):
-        return self._request
+    def nodes(self):
+        """A list of all the nodes that have been run."""
+        return self._nodes
 
-    @request.setter
-    def request(self, v):
-        self._request = v
+    def push(self, node):
+        """Press the target node into state nodes."""
+        self._nodes.append(node)
+        self._steps[node.id] = node
+
+    def pop(self):
+        """Pop the target node from the State nodes."""
+        if not len(self._nodes):
+            return None
+
+        node = self._nodes.pop()
+        return node
+
+    def fetch(self):
+        """fetch state data"""
+        return self._data
+
+    def commit(self, data):
+        """merge state data"""
+        self._data = {**self._data, **data}
 
     @property
-    def response(self):
-        return self._response
-
-    @request.setter
-    def response(self, v):
-        self._response = v
-
-    def update(self, v):
-        self._data.update(v)
+    def steps(self):
+        return self._steps
