@@ -1,0 +1,6 @@
+arkfbpCliVersion: 0.0.3-rc
+arkfbpSpecVersion: {{ arkfbp_version }}
+created: {{ create_time }}
+language: Python
+name: {{ project_name }}
+type: Django Server
