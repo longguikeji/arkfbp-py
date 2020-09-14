@@ -100,13 +100,12 @@ class Executer:
             if os.path.isdir(path) and file.startswith('test'):
                 if 'main.py' in os.listdir(path):
                     print(file + '--------------------------------------------')
-                    start_dir = os.path.abspath(path)
+                    start_dir = path.replace('/', '.').lstrip('..')
                     try:
-                        sys.path.append(start_dir)
-                        import main
-                        a = main.Main()
+                        a = importlib.import_module(start_dir+'.main')
+                        main = a.Main()
                         sys.stdout.write(
-                            self.start_test_flow(a, inputs={}, http_method='get') + '\n')
+                            self.start_test_flow(main, inputs={}, http_method='get') + '\n')
                     except Exception as e:
                         sys.stdout.write(str(e))
 
