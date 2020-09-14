@@ -53,7 +53,7 @@ class DjangoVisualApi(VisualAPI):
     def extend_api_context(self, modules, apis, **kwargs):
         """extend api context"""
         cls_as = kwargs.get('flow').replace('.', '_')
-        http_method = [kwargs.get('http_method', 'GET')]
+        http_method = [kwargs.get('method', 'GET').upper()]
         api = "path('{0}', {1}.pre_as_view(http_method={2}), name='{3}')".format(
             self.namespace + kwargs.get('key'),
             cls_as,
