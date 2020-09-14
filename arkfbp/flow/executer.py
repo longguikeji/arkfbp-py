@@ -1,4 +1,8 @@
+import importlib
 import json
+import os
+import sys
+
 from django.core.management import CommandError
 from django.test import RequestFactory
 
@@ -89,6 +93,22 @@ class Executer:
             inputs = ViewFlow.convert_request(request)
 
         self.start_flow(flow, inputs)
+
+    def start_all_test_flows(self, top_dir):
+        for file in os.listdir(top_dir):
+            path = os.path.join(top_dir, file)
+            if os.path.isdir(path) and file.startswith('test'):
+                if 'main.py' in os.listdir(path):
+                    print(file + '--------------------------------------------')
+                    start_dir = os.path.abspath(path)
+                    try:
+                        sys.path.append(start_dir)
+                        import main
+                        a = main.Main()
+                        sys.stdout.write(
+                            self.start_test_flow(a, inputs={}, http_method='get') + '\n')
+                    except Exception as e:
+                        sys.stdout.write(str(e))
 
     def start_node(self, node, flow, graph_node, *args, **kwargs):
         node.flow = flow

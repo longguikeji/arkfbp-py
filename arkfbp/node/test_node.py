@@ -1,9 +1,11 @@
-from django.test import TestCase
-from .base import Node
 import sys
-from ..flow import executer
+from django.test import TestCase
 
-class TestNode(TestCase,Node):
+from ..flow import executer
+from .base import Node
+
+
+class TestNode(TestCase, Node):
 
     def setUp(self):
         pass
