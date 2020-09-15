@@ -15,9 +15,11 @@ class Command(TemplateCommand):
         app_name = options.pop('name')
         target = options.pop('directory')
         top_dir = options.pop('topdir')
-        if top_dir and not os.path.exists(top_dir):
-            os.mkdir(top_dir)
-            target = top_dir
+        if top_dir:
+            path = os.path.join(top_dir, app_name)
+            if not os.path.exists(path):
+                os.mkdir(path)
+            target = path
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/app_template')
         super().handle('app', app_name, target, **options)
 
