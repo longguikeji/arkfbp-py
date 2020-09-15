@@ -1,3 +1,5 @@
+import os
+
 import arkfbp
 from django.core.management.templates import TemplateCommand
 
@@ -12,5 +14,13 @@ class Command(TemplateCommand):
     def handle(self, **options):
         app_name = options.pop('name')
         target = options.pop('directory')
+        top_dir = options.pop('topdir')
+        if top_dir and not os.path.exists(top_dir):
+            os.mkdir(top_dir)
+            target = top_dir
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/app_template')
         super().handle('app', app_name, target, **options)
+
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument('--topdir', type=str, help='Specify the parent directory where django app resides.')
