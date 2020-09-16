@@ -94,15 +94,15 @@ class Executer:
 
         self.start_flow(flow, inputs)
 
-    def search_flow(self, top_dir, absdir = []):
+    def search_flow(self, top_dir, absdir=[]):
         for file in os.listdir(top_dir):
-            path = os.path.join(top_dir,file)
+            path = os.path.join(top_dir, file)
             if os.path.isdir(path) and file.startswith('test'):
                 if 'main.py' in os.listdir(path):
                     absdir.append(os.path.abspath(path))
-
+                self.search_flow(os.path.abspath(path), absdir=absdir)
             elif os.path.isdir(path):
-                self.search_flow(os.path.abspath(path),absdir=absdir)
+                self.search_flow(os.path.abspath(path), absdir=absdir)
             else:
                 pass
         return absdir
@@ -111,7 +111,7 @@ class Executer:
         dirlist = self.search_flow(top_dir)
         for start_dir in dirlist:
             try:
-                test_dir = start_dir.replace(os.getcwd(),'').replace('/','.').strip('.')+'.main'
+                test_dir = start_dir.replace(os.getcwd(), '').replace('/', '.').strip('.')+'.main'
                 print(test_dir)
                 a = importlib.import_module(test_dir)
                 main = a.Main()
