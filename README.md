@@ -323,5 +323,118 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ## TestFlow
 
-测试流
+### Create Flow     
 
+1、 通过`Quick Start`中的第四步新建一个工作流，新建的工作流的名称必须以`test`开头      
+2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`    
+3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`     
+这样就得到一个测试流     
+测试流的`main.py`如下：         
+
+    from arkfbp.flow import Flow
+    from arkfbp.node import StartNode, StopNode
+    from app1.flows.testt1.nodes.node1 import Node1
+
+    # Editor your flow here.
+    class Main(Flow):
+
+        def create_nodes(self):
+            return [
+                {
+                    'cls': StartNode,
+                    'id': 'start',
+                    'next': 'node1'
+                },{
+                    'cls': Node1,
+                    'id': 'node1',
+                    'next': 'stop'
+                },{
+                    'cls': StopNode,
+                    'id': 'stop'
+                }
+            ]     
+### Create node
+
+1、 通过`Quick Start`中的第五步新建一个节点    
+2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`   
+3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`    
+这样就得到一个测试节点     
+测试节点`node1`如下：
+
+    from arkfbp.node import TestNode
+
+    # Editor your node here.
+    class Node1(TestNode):
+
+        def run(self, *args, **kwargs):
+            print(f'Hello, Node1!')
+
+### 测试节点使用      
+
+1、 `setUp`函数    
+测试节点的`setUp`函数将在测试用例执行之前调用，可用于准备数据等      
+
+    def setUp(self):
+        print('before start test')
+
+2、 `tearDown`函数    
+测试节点的`tearDown`函数在测试用例全部执行之后调用    
+
+    def tearDown(self):
+        print('after finish test')
+
+3、 测试用例    
+测试用例为以`test_`开头的函数    
+
+    def test_one(self):
+        pass
+
+4、 断言   
+测试节点支持`python`自带断言和`django unittest`的断言方法    
+
+    def test_one(self):
+        assert 1==1
+    def test_two(self):
+        self.assertEqual(1,1)   
+
+5、 调用其他测试流   
+在一个测试用例中可以调用其他测试流，得到被调用测试流的结果。调用方式如下：    
+
+    from arkfbp.node import TestNode
+    from app1.flows.testt1.main import Main
+
+    class Node1(TestNode):
+
+        def test_other_testflow(self):
+            self.get_outputs(Main(),inputs={},http_method='get')
+
+首先需要先从被调用测试流的`main`模块中引入`Main`类，然后调用函数`get_outputs`。       
+函数`get_outputs`有三个参数，第一个参数为被调用测试流`Main`类的实例，即`Main()`；第二个参数为输入的数据，字典类型；第三个参数为调用测试流的方法，为`get`     
+
+### Run Flow   
+
+#### 运行指定测试流  
+
+运行指定测试流需要通过调用函数实现。     
+1、 在项目目录下新建`python` 文件       
+2、 引入`executer`模块     
+3、 引入被运行测试流的`Main`类，调用函数`start_test_flow`运行测试流       
+函数`start_test_flow`有三个参数，第一个参数为被调用测试流`Main`类的实例，即`Main()`；第二个参数为输入的数据，字典类型；第三个参数为调用测试流的方法，为`get`。运行指定工作流如下：      
+
+    from arkfbp.flow import executer
+    from app1.flows.testtest.main import Main
+
+    print(executer.FlowExecuter.start_test_flow(Main(),inputs={},http_method='get'))
+
+#### 运行指定目录下测试流     
+
+1、 在项目目录下新建`python` 文件       
+2、 引入`executer`模块     
+3、 调用函数`start_all_test_flows`运行测试流        
+函数`start_all_test_flows`有一个参数，表示指定的目录，传入相对路径、绝对路径均可。运行指定工作流如下：        
+
+    from arkfbp.flow import executer
+
+    print(executer.FlowExecuter.start_all_test_flows('./app1/flows/'))
+
+若想运行全部测试流也可通过命令实现。在`manage.py`文件所在目录下输入命令`python3 manage.py flowtest`，即可直接运行所有测试流  
