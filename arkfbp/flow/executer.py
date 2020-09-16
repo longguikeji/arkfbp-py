@@ -94,29 +94,29 @@ class Executer:
 
         self.start_flow(flow, inputs)
 
-    def search_flow(self, top_dir, absdir=[]):
+    def search_flow(self, top_dir, abs_dirs=[]):
         for file in os.listdir(top_dir):
             path = os.path.join(top_dir, file)
             if os.path.isdir(path):
                 if file.startswith('test') and 'main.py' in os.listdir(path):
-                    absdir.append(os.path.abspath(path))
-                self.search_flow(os.path.abspath(path), absdir=absdir)
+                    abs_dirs.append(os.path.abspath(path))
+                self.search_flow(os.path.abspath(path), abs_dirs=abs_dirs)
             else:
                 pass
-        return absdir
+        return abs_dirs
 
     def start_all_test_flows(self, top_dir):
-        dirlist = self.search_flow(top_dir)
-        for start_dir in dirlist:
+        abs_dirs = self.search_flow(top_dir)
+        for abs_dir in abs_dirs:
             try:
-                test_dir = start_dir.replace(os.getcwd(), '').replace('/', '.').strip('.')+'.main'
-                print(test_dir)
-                a = importlib.import_module(test_dir)
-                main = a.Main()
+                path = abs_dir.replace(os.getcwd(), '').replace('/', '.').strip('.')+'.main'
+                print(path)
+                clz = importlib.import_module(path)
+                flow = clz.Main()
                 sys.stdout.write(
-                    self.start_test_flow(main, inputs={}, http_method='get') + '\n')
+                    self.start_test_flow(flow, inputs={}, http_method='get') + '\n')
             except Exception as e:
-                sys.stdout.write(str(e))
+                sys.stdout.write(e.__str__())
 
     def start_node(self, node, flow, graph_node, *args, **kwargs):
         node.flow = flow
