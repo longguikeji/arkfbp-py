@@ -97,11 +97,9 @@ class Executer:
     def search_flow(self, top_dir, absdir=[]):
         for file in os.listdir(top_dir):
             path = os.path.join(top_dir, file)
-            if os.path.isdir(path) and file.startswith('test'):
-                if 'main.py' in os.listdir(path):
+            if os.path.isdir(path):
+                if file.startswith('test') and 'main.py' in os.listdir(path):
                     absdir.append(os.path.abspath(path))
-                self.search_flow(os.path.abspath(path), absdir=absdir)
-            elif os.path.isdir(path):
                 self.search_flow(os.path.abspath(path), absdir=absdir)
             else:
                 pass
