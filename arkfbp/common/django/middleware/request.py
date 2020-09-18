@@ -8,11 +8,11 @@ from django.utils.deprecation import MiddlewareMixin
 class InputsMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
-        if not hasattr(request, 'extra_data'):
-            request.extra_data = {}
+        if not hasattr(request, 'extra_ds'):
+            request.extra_ds = {}
 
-        if not hasattr(request, 'data') and not hasattr(request, 'str'):
-            request.data, request.str = _extract(request)
+        if not hasattr(request, 'ds') and not hasattr(request, 'str'):
+            request.ds, request.str = _extract(request)
 
     def process_response(self, request, response):
         return response
