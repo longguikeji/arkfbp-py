@@ -2,6 +2,7 @@ import json
 from json import JSONDecodeError
 
 from django.core.handlers.wsgi import WSGIRequest
+from django.http import RawPostDataException
 from django.utils.deprecation import MiddlewareMixin
 
 
@@ -34,13 +35,17 @@ def _extract(request: WSGIRequest):
         return data, data_str
 
     # 2）`body`为`json`、`text`等其他形式数据
-    _post_body = request.body
-    if not _post_body:
+    try:
+        _post_body = request.body
+        if not _post_body:
+            data = {**_get_params}
+            return data, data_str
+    except RawPostDataException:
         data = {**_get_params}
         return data, data_str
 
+    json_body = {}
     try:
-        json_body = {}
         json_body = json.loads(_post_body)
     except JSONDecodeError:
         data_str = _post_body
