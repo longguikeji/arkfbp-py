@@ -303,13 +303,13 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 `ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
 
-### data
+### DataSet
 
-`data`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
+`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
 
-### extra_data
+### extra_ds
 
-你可以在`extra_data`中存放你想要传递下去的任何数据
+你可以在`extra_ds`中存放你想要传递下去的任何数据
 
 ### str
 
