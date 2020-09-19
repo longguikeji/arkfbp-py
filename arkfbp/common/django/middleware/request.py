@@ -1,5 +1,4 @@
 import json
-from json import JSONDecodeError
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import RawPostDataException
@@ -47,7 +46,8 @@ def _extract(request: WSGIRequest):
     json_body = {}
     try:
         json_body = json.loads(_post_body)
-    except JSONDecodeError:
+    except Exception as e:
+        print(f'WARNING:{e}')
         data_str = _post_body
     finally:
         data = {**_get_params, **json_body}
