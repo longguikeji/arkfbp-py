@@ -80,7 +80,7 @@ arkfbp-py is the python implementation of the arkfbp.
         ]
     }
 
-9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径:
+9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径生成文件:
 
     python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
