@@ -4,7 +4,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # installation
 
-    pip3 install arkfbp
+    pip3 install arkfbp (暂不可用)
     
     or
     
