@@ -20,14 +20,6 @@ arkfbp-py is the python implementation of the arkfbp.
 
     arkfbp-py startproject demo
 
-2、此时可使用`arkfbp-py`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
-
-        from django.core.management import execute_from_command_line
-
-替换为：
-
-        from arkfbp.common.django.management import execute_from_command_line
-
 3、在项目根目录下，新建名为`app1`的应用:
 
     arkfbp-py startapp app1
