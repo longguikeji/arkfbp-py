@@ -36,7 +36,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
         def run(self, *args, **kwargs):
             print(f'Hello, Node1!')
-            return HttpResponse('hello arkfbp')
+            return 'hello arkfbp'
 
 7、`demo/app1/flows/flow1`的`main.py`示例如下:
     
