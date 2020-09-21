@@ -28,7 +28,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
         from arkfbp.common.django.management import execute_from_command_line
 
-3、新建名为`app1`的应用:
+3、在项目根目录下，新建名为`app1`的应用:
 
     arkfbp-py startapp app1
 
@@ -38,7 +38,7 @@ arkfbp-py is the python implementation of the arkfbp.
  
 5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
 
-    arkfbp-py createnode node1
+    arkfbp-py createnode node1 --id node1
 
 6、在`Node1`的`run`方法示例如下:
 
