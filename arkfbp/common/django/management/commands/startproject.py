@@ -27,10 +27,9 @@ class Command(TemplateCommand):
         target = options.pop('directory')
         options['secret_key'] = get_random_secret_key()
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/project_template')
-        options['extensions'] = ('.yml', )
+        options['extensions'] += ('.yml', )
         options.update(create_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         options.update(arkfbp_version=arkfbp.__version__)
-        options.update(project_name=name)
 
         app_or_project = 'project'
         self.app_or_project = app_or_project
