@@ -84,7 +84,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
     python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
-10、将`9`中生成的url文件，配置到项目的demo/urls.py中
+10、将`9`中生成的url文件，配置到项目的demo/urls.py中。
     
     from django.contrib import admin
     from django.urls import path, include
@@ -98,7 +98,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
     python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post --header {\"Authorization\": \"token\"}
 
-12、使用`django`原生方式启动`server`
+12、使用`django`原生方式启动`server`。
     
     python3 manage.py runserver 0.0.0.0:8000
 
@@ -139,7 +139,7 @@ arkfbp-py is the python implementation of the arkfbp.
         def set_mount(self):
             self.before_flow = True
 
-2、在`set_mount()`方法中设置想要开启钩子的位置
+2、在`set_mount()`方法中设置想要开启钩子的位置。
     
     def set_mount(self):
         """
@@ -147,7 +147,7 @@ arkfbp-py is the python implementation of the arkfbp.
         """
         self.before_flow = True
 
-3、将钩子流配置到项目的`settings.py`文件的`MIDDLEWARE`变量中
+3、将钩子流配置到项目的`settings.py`文件的`MIDDLEWARE`变量中。
 
     INSTALLED_APPS = [
         ...
@@ -166,7 +166,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 ## New GlobalHookFlow
 
-全新的钩子流现已可以使用
+全新的钩子流现已可以使用。
 
 ### 简单使用
 
@@ -242,6 +242,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 ## ShutDown Flow
 
+### Flow Shutdown
 现在，你可以通过`flow.shutdown(outputs, **kwargs)`方法，来随时随地的停止工作流的运行
 
 如果你使用`ViewFlow`来定义流，那么可指定返回的`response`的状态码`response_status`，例如：
@@ -269,15 +270,27 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
         def before_initialize(inputs, *args, **kwargs):
             self.shutdown('Flow Error！', response_status=400)
 
+### Node Shutdown
+同样，你也可以通过`node.flow.shutdown(outputs, **kwargs)`方法，来随时随地的停止工作流的运行。
+
+如果你使用`ViewFlow`来定义流，那么可指定返回的`response`的状态码`response_status`，例如：
+    
+    class Node1(FunctionNode):
+
+    id = 'node1'
+
+    def run(self, *args, **kwargs):
+        print(f'Hello, Hook 1!')
+        self.flow.shutdown('Flow Error！', response_status=400)
 
 ## Flow State
 
 
 ## Flow Steps
 
-`flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据
+`flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据。
 
-现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`
+现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`。
 
     node1 = node.state.steps.get('node1', None)
 
@@ -287,15 +300,15 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 ### DataSet
 
-`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
+`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`。
 
 ### extra_ds
 
-你可以在`extra_ds`中存放你想要传递下去的任何数据
+你可以在`extra_ds`中存放你想要传递下去的任何数据。
 
 ### str
 
-`str`包含了请求体中的字符串信息
+`str`包含了请求体中的字符串信息。
 
 _注意：你可以随意为inputs增加任何属性，例如：_
     
@@ -362,9 +375,9 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ### Create Flow     
 
-1、 通过`Quick Start`中的第四步新建一个工作流，新建的工作流的名称必须以`test`开头      
-2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`    
-3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`     
+1、 通过`Quick Start`中的第四步新建一个工作流，新建的工作流的名称必须以`test`开头。 
+2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`。  
+3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`。  
 这样就得到一个测试流     
 测试流的`main.py`如下：         
 
@@ -392,9 +405,9 @@ _这样你就为`inputs`增加了`attr`的属性_
             ]     
 ### Create node
 
-1、 通过`Quick Start`中的第五步新建一个节点    
-2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`   
-3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`    
+1、 通过`Quick Start`中的第五步新建一个节点。 
+2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`。   
+3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`。    
 这样就得到一个测试节点     
 测试节点`node1`如下：
 
@@ -409,25 +422,25 @@ _这样你就为`inputs`增加了`attr`的属性_
 ### 测试节点使用      
 
 1、 `setUp`函数    
-测试节点的`setUp`函数将在测试用例执行之前调用，可用于准备数据等      
+测试节点的`setUp`函数将在测试用例执行之前调用，可用于准备数据等。      
 
     def setUp(self):
         print('before start test')
 
 2、 `tearDown`函数    
-测试节点的`tearDown`函数在测试用例全部执行之后调用    
+测试节点的`tearDown`函数在测试用例全部执行之后调用。    
 
     def tearDown(self):
         print('after finish test')
 
 3、 测试用例    
-测试用例为以`test_`开头的函数    
+测试用例为以`test_`开头的函数。    
 
     def test_one(self):
         pass
 
 4、 断言   
-测试节点支持`python`自带断言和`django unittest`的断言方法    
+测试节点支持`python`自带断言和`django unittest`的断言方法。    
 
     def test_one(self):
         assert 1==1
