@@ -3,6 +3,7 @@ import json
 from json.decoder import JSONDecodeError
 from os import walk, path
 
+from arkfbp.flow.base import FLOW_FROZEN
 from arkfbp.flow.executer import FlowExecuter
 from django.conf import settings
 from django.core.management import CommandError
@@ -69,9 +70,12 @@ def execute(request, process_type, *args, **kwargs):
 
     inputs = request
     for clz in hooks:
-        outputs = FlowExecuter.start_flow(clz.Main(), inputs, *args, **kwargs)
+        hook_flow = clz.Main()
+        outputs = FlowExecuter.start_flow(hook_flow, inputs, *args, **kwargs)
+        if hook_flow.valid_status(FLOW_FROZEN):
+            return outputs
         inputs = outputs
-    return inputs
+    return None
 
 
 class GlobalFlowMiddleware(MiddlewareMixin):

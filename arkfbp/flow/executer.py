@@ -8,7 +8,7 @@ from django.test import RequestFactory
 
 
 class Executer:
-    """"""
+    """executer for flows and nodes"""
 
     def start_flow(self, flow, inputs, *args, **kwargs):
 
@@ -32,9 +32,9 @@ class Executer:
 
         if flow.valid_status():
             flow.before_destroy(inputs, ret, *args, **kwargs)
-
         flow.log_debug()
-        return flow.response
+        response = flow.die()
+        return response
 
     def cli_start_flow(self, flow, inputs, *args, **kwargs):
         """start a flow by cli"""

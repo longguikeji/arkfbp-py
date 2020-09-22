@@ -51,4 +51,7 @@ class ViewFlow(Flow, View):
                 return HttpResponse(str(self.outputs), status=self.response_status)
             if type(self.outputs) == dict:
                 return JsonResponse(self.outputs, status=self.response_status)
+            self._response = self.outputs
+            return self._response
+
         return self._response
