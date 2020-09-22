@@ -47,7 +47,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'arkfbp.common.django.middleware.request.InputsMiddleware',
 ]
 
 ROOT_URLCONF = '{{ project_name }}.urls'
@@ -119,3 +118,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/{{ docs_version }}/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# ArkFBP
+
+ARKFBP_CONF = '{{ project_name }}'
+MIDDLEWARE += [
+    'arkfbp.common.django.middleware.request.InputsMiddleware',
+    'arkfbp.common.django.middleware.hook.GlobalFlowMiddleware',
+]
