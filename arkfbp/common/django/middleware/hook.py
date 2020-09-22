@@ -74,7 +74,7 @@ def execute(request, process_type, *args, **kwargs):
         outputs = FlowExecuter.start_flow(hook_flow, inputs, *args, **kwargs)
         if hook_flow.valid_status(FLOW_FROZEN):
             return outputs
-        inputs = outputs
+
     return None
 
 

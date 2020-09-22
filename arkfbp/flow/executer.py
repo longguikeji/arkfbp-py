@@ -33,7 +33,7 @@ class Executer:
         if flow.valid_status():
             flow.before_destroy(inputs, ret, *args, **kwargs)
         flow.log_debug()
-        response = flow.die()
+        response = flow.die() if flow.valid_status() else flow.response
         return response
 
     def cli_start_flow(self, flow, inputs, *args, **kwargs):
