@@ -24,13 +24,13 @@ arkfbp-py is the python implementation of the arkfbp.
 
     arkfbp-py startapp app1
 
-4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流:
+4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流，并设置类型 --class:
 
-    arkfbp-py createflow flow1
+    arkfbp-py createflow flow1 --class view
  
-5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
+5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点,并设置类型 --class和标识 --id:
 
-    arkfbp-py createnode node1 --id node1
+    arkfbp-py createnode node1 --class function --id node1
 
 6、在`Node1`的`run`方法示例如下:
 
@@ -80,7 +80,7 @@ arkfbp-py is the python implementation of the arkfbp.
         ]
     }
 
-9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径生成文件:
+9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径查找并生成文件:
 
     python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
@@ -104,7 +104,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # Advanced usage
 
-## GlobalHookFlow
+## GlobalHookFlow（已废弃）
 
 全局钩子式工作流运行的场景适用于：
 
@@ -163,6 +163,50 @@ arkfbp-py is the python implementation of the arkfbp.
 
 `GlobalHookFlow`的执行顺序与`django`原生`Middleware`执行顺序一致，
 before_route()、before_flow()的执行顺序依次为从上至下；after_flow()、before_exception()则为从下至上。
+
+## New GlobalHookFlow
+
+全新的钩子流现已可以使用
+
+### 简单使用
+
+1、在demo/hook/文件夹下创建一个全局钩子流，并设置类型 --class。
+
+    arkfbp-py createflow hook1 --class view
+
+2、创建节点Node1（过程略），并编辑。
+    
+    class Node1(FunctionNode):
+
+    id = 'node1'
+
+    def run(self, *args, **kwargs):
+        print(f'Hello, Hook!')
+        return None
+
+3、在demo/arkfbp/hooks/hook.json中设置流的执行位置。
+    
+    {
+        "before_route": ["hook.hook1"],
+        "before_flow": [],
+        "before_exception": [],
+        "before_response": []
+    }
+4、这样在每次路由之前，都会先进入hook1这个流进行处理。
+
+### 详解
+
+全局钩子式工作流运行的场景适用于：
+
+1）接口路由之前（before_route）
+
+2）工作流运行之前（before_flow）
+
+3）返回响应之前（before_response）
+
+4）抛出异常之前（before_exception）
+
+列表中流的摆放顺序，即为执行顺序。
 
 ## Flow Hook
 
@@ -237,8 +281,30 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
     node1 = node.state.steps.get('node1', None)
 
+## ViewFlow inputs
 
-## New Feature For CLI
+`ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
+
+### DataSet
+
+`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
+
+### extra_ds
+
+你可以在`extra_ds`中存放你想要传递下去的任何数据
+
+### str
+
+`str`包含了请求体中的字符串信息
+
+_注意：你可以随意为inputs增加任何属性，例如：_
+    
+    inputs.attr = {}
+
+_这样你就为`inputs`增加了`attr`的属性_
+
+
+## Feature For CLI
 
 ### Create Flow
 
@@ -291,27 +357,6 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
     arkfbp-py createnode -h
 
-## ViewFlow inputs
-
-`ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
-
-### DataSet
-
-`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
-
-### extra_ds
-
-你可以在`extra_ds`中存放你想要传递下去的任何数据
-
-### str
-
-`str`包含了请求体中的字符串信息
-
-_注意：你可以随意为inputs增加任何属性，例如：_
-    
-    inputs.attr = {}
-
-_这样你就为`inputs`增加了`attr`的属性_
 
 ## TestFlow
 
