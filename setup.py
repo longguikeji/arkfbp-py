@@ -22,7 +22,7 @@ setup(
     keywords=['arkfbp'],
     license='MIT',
     packages=find_packages(),
-    python_requires="!=3.6.*, !=3.7.*, !=3.8.*",
+    python_requires="!=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*,",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
