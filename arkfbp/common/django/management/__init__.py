@@ -126,7 +126,15 @@ class ManagementUtility(management.ManagementUtility):
         # Preprocess options to extract --settings and --pythonpath.
         # These options could affect the commands that are available, so they
         # must be processed early.
-        parser = CommandParser(None, usage='%(prog)s subcommand [options] [args]', add_help=False, allow_abbrev=False)
+
+        # Compatible with the processing
+        django_version = django.get_version().split('.')
+        if int(django_version[0]) == 2 and int(django_version[1]) < 1:
+            parser = CommandParser(None, usage='%(prog)s subcommand [options] [args]', add_help=False,
+                                   allow_abbrev=False)
+        else:
+            parser = CommandParser(usage='%(prog)s subcommand [options] [args]', add_help=False,
+                                   allow_abbrev=False)
         parser.add_argument('--settings')
         parser.add_argument('--pythonpath')
         parser.add_argument('args', nargs='*')  # catch-all
