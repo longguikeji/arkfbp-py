@@ -26,8 +26,7 @@ class Command(BaseCommand):
         in the same parent directory as settings.py, you need to manually
         specify the directory where ArkFBP is located.
         """
-        default_top_dir = settings.SETTINGS_MODULE.rsplit('.', 1)[0]
-
+        default_top_dir = settings.ARKFBP_CONF if hasattr(settings, 'ARKFBP_CONF') else settings.SETTINGS_MODULE.rsplit('.', 1)[0]
         top_dir = options.get('topdir')
         if not top_dir:
             top_dir = default_top_dir
@@ -87,6 +86,9 @@ class Command(BaseCommand):
         """
         Render the text message to the urls.py file
         """
+        if not apis_set:
+            return
+
         api_text = ' ' + apis_set[0]
         for api in apis_set[1:]:
             api_text = f'{api_text},\n {api}'

@@ -15,7 +15,8 @@ FLOW_RUNNING = 'RUNNING'
 FLOW_CREATED = 'CREATED'
 FLOW_ERROR = 'ERROR'
 FLOW_STOPPED = 'STOPPED'
-FLOW_STATUS = [FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED]
+FLOW_FROZEN = 'FROZEN'
+FLOW_STATUS = [FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED, FLOW_FROZEN]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -103,13 +104,17 @@ class Flow:
         return self.outputs
 
     def shutdown(self, outputs):
-        self._status = FLOW_STOPPED
+        self._status = FLOW_FROZEN
         self.outputs = outputs
         return self.response
 
     def terminate(self, exception):
         self._status = FLOW_ERROR
         self.error = exception
+
+    def die(self):
+        self._status = FLOW_STOPPED
+        return self.response
 
     def log_debug(self):
         if not self.debug:
@@ -148,7 +153,7 @@ class Flow:
         if target in FLOW_STATUS:
             return True if target == self._status else False
 
-        if self._status in [FLOW_STOPPED, FLOW_ERROR]:
+        if self._status in [FLOW_STOPPED, FLOW_ERROR, FLOW_FROZEN]:
             return False
 
         return True

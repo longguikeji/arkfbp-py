@@ -39,6 +39,8 @@ class ViewFlow(Flow, View):
 
     @property
     def response(self):
+        if not self.response_type:
+            return self._response
         try:
             self._response = self.response_type(self.outputs, status=self.response_status)
         except TypeError:
@@ -49,4 +51,7 @@ class ViewFlow(Flow, View):
                 return HttpResponse(str(self.outputs), status=self.response_status)
             if type(self.outputs) == dict:
                 return JsonResponse(self.outputs, status=self.response_status)
+            self._response = self.outputs
+            return self._response
+
         return self._response

@@ -26,7 +26,7 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
                     }
                 ]
             def set_mount(self):
-                self._before_route = True
+                self.before_route = True
     """
 
     response_type = JsonResponse
@@ -69,6 +69,8 @@ class GlobalHookFlow(MiddlewareMixin, Flow):
 
     @property
     def response(self):
+        if not self.response_type:
+            return self._response
         try:
             self._response = self.response_type(self.outputs, status=self.response_status)
         except TypeError:

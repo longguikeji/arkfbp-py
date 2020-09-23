@@ -20,25 +20,25 @@ arkfbp-py is the python implementation of the arkfbp.
 
     arkfbp-py startproject demo
 
-3、在项目根目录下，新建名为`app1`的应用:
+2、在项目根目录下，新建名为`app1`的应用:
 
     arkfbp-py startapp app1
 
-4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流，并设置类型 --class:
+3、移动到`demo/app1/flows`目录下，新建名为`flow1`的流，并设置类型 --class:
 
     arkfbp-py createflow flow1 --class view
  
-5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点,并设置类型 --class和标识 --id:
+4、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点,并设置类型 --class和标识 --id:
 
     arkfbp-py createnode node1 --class function --id node1
 
-6、在`Node1`的`run`方法示例如下:
+5、在`Node1`的`run`方法示例如下:
 
         def run(self, *args, **kwargs):
             print(f'Hello, Node1!')
             return 'hello arkfbp'
 
-7、`demo/app1/flows/flow1`的`main.py`示例如下:
+6、`demo/app1/flows/flow1`的`main.py`示例如下:
     
     from arkfbp.node import StartNode, StopNode
     from arkfbp.graph import Graph
@@ -67,7 +67,7 @@ arkfbp-py is the python implementation of the arkfbp.
                 }
             ]
 
-8、在`demo/arkfbp/routes/demo.json`中配置路由信息:
+7、在`demo/arkfbp/routes/demo.json`中配置路由信息:
     
     {
         "namespace": "demo/v1/",
@@ -80,11 +80,11 @@ arkfbp-py is the python implementation of the arkfbp.
         ]
     }
 
-9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径查找并生成文件:
+8、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径查找并生成文件:
 
     python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
-10、将`9`中生成的url文件，配置到项目的demo/urls.py中。
+9、将`8`中生成的url文件，配置到项目的demo/urls.py中。
     
     from django.contrib import admin
     from django.urls import path, include
@@ -94,11 +94,11 @@ arkfbp-py is the python implementation of the arkfbp.
         path('', include('demo.demo_urls'))
     ]
 
-11、尝试运行流`flow1`:
+10、尝试运行流`flow1`:
 
     python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post --header {\"Authorization\": \"token\"}
 
-12、使用`django`原生方式启动`server`。
+11、使用`django`原生方式启动`server`。
     
     python3 manage.py runserver 0.0.0.0:8000
 
@@ -375,7 +375,7 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ### Create Flow     
 
-1、 通过`Quick Start`中的第四步新建一个工作流，新建的工作流的名称必须以`test`开头。 
+1、 通过`Quick Start`中的第3步新建一个工作流，新建的工作流的名称必须以`test`开头。 
 2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`。  
 3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`。  
 这样就得到一个测试流     
@@ -405,7 +405,7 @@ _这样你就为`inputs`增加了`attr`的属性_
             ]     
 ### Create node
 
-1、 通过`Quick Start`中的第五步新建一个节点。 
+1、 通过`Quick Start`中的第4步新建一个节点。 
 2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`。   
 3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`。    
 这样就得到一个测试节点     
