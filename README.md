@@ -4,12 +4,14 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # installation
 
+arkfbp-py需要 Python 3.6+ 及Django 2.0+ 的版本支持。
+
     pip3 install arkfbp (暂不可用)
     
     or
     
     pip3 install git+https://github.com/longguikeji/arkfbp-py.git@zzr/basic
-    
+
 # Dev installation
 
     python3 setup.py install
