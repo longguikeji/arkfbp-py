@@ -4,7 +4,7 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # installation
 
-    pip3 install arkfbp
+    pip3 install arkfbp (暂不可用)
     
     or
     
@@ -20,33 +20,25 @@ arkfbp-py is the python implementation of the arkfbp.
 
     arkfbp-py startproject demo
 
-2、此时可使用`arkfbp-py`或者`manage.py`文件进行`app`、`flow`及`node`的创建，注意：若使用`manage.py`，需要将:
-
-        from django.core.management import execute_from_command_line
-
-替换为：
-
-        from arkfbp.common.django.management import execute_from_command_line
-
-3、在项目根目录下，新建名为`app1`的应用:
+2、在项目根目录下，新建名为`app1`的应用:
 
     arkfbp-py startapp app1
 
-4、移动到`demo/app1/flows`目录下，新建名为`flow1`的流:
+3、移动到`demo/app1/flows`目录下，新建名为`flow1`的流，并设置类型 --class:
 
-    arkfbp-py createflow flow1
+    arkfbp-py createflow flow1 --class view
  
-5、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点:
+4、移动到`demo/app1/flows/flow1/nodes`目录下，新建名为`node1`的节点,并设置类型 --class和标识 --id:
 
-    arkfbp-py createnode node1 --id node1
+    arkfbp-py createnode node1 --class function --id node1
 
-6、在`Node1`的`run`方法示例如下:
+5、在`Node1`的`run`方法示例如下:
 
         def run(self, *args, **kwargs):
             print(f'Hello, Node1!')
-            return HttpResponse('hello arkfbp')
+            return 'hello arkfbp'
 
-7、`demo/app1/flows/flow1`的`main.py`示例如下:
+6、`demo/app1/flows/flow1`的`main.py`示例如下:
     
     from arkfbp.node import StartNode, StopNode
     from arkfbp.graph import Graph
@@ -75,7 +67,7 @@ arkfbp-py is the python implementation of the arkfbp.
                 }
             ]
 
-8、在`demo/arkfbp/routes/demo.json`中配置路由信息:
+7、在`demo/arkfbp/routes/demo.json`中配置路由信息:
     
     {
         "namespace": "demo/v1/",
@@ -88,11 +80,11 @@ arkfbp-py is the python implementation of the arkfbp.
         ]
     }
 
-9、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径:
+8、迁移路由信息，其中参数`--topdir`可指定路由配置信息所在目录，参数`--urlfile`可指定迁移后的文件所在路径，默认会在项目settings.py文件所在路径查找并生成文件:
 
     python3 manage.py migrateroute --topdir demo --urlfile demo/demo_urls.py
 
-10、将`9`中生成的url文件，配置到项目的demo/urls.py中
+9、将`8`中生成的url文件，配置到项目的demo/urls.py中。
     
     from django.contrib import admin
     from django.urls import path, include
@@ -102,17 +94,17 @@ arkfbp-py is the python implementation of the arkfbp.
         path('', include('demo.demo_urls'))
     ]
 
-11、尝试运行流`flow1`:
+10、尝试运行流`flow1`:
 
     python3 manage.py runflow --flow app1.flows.flow1.main --input {\"username\": \"admin\"} --http_method post --header {\"Authorization\": \"token\"}
 
-12、使用`django`原生方式启动`server`
+11、使用`django`原生方式启动`server`。
     
     python3 manage.py runserver 0.0.0.0:8000
 
 # Advanced usage
 
-## GlobalHookFlow
+## GlobalHookFlow（已废弃）
 
 全局钩子式工作流运行的场景适用于：
 
@@ -147,7 +139,7 @@ arkfbp-py is the python implementation of the arkfbp.
         def set_mount(self):
             self.before_flow = True
 
-2、在`set_mount()`方法中设置想要开启钩子的位置
+2、在`set_mount()`方法中设置想要开启钩子的位置。
     
     def set_mount(self):
         """
@@ -155,7 +147,7 @@ arkfbp-py is the python implementation of the arkfbp.
         """
         self.before_flow = True
 
-3、将钩子流配置到项目的`settings.py`文件的`MIDDLEWARE`变量中
+3、将钩子流配置到项目的`settings.py`文件的`MIDDLEWARE`变量中。
 
     INSTALLED_APPS = [
         ...
@@ -171,6 +163,50 @@ arkfbp-py is the python implementation of the arkfbp.
 
 `GlobalHookFlow`的执行顺序与`django`原生`Middleware`执行顺序一致，
 before_route()、before_flow()的执行顺序依次为从上至下；after_flow()、before_exception()则为从下至上。
+
+## New GlobalHookFlow
+
+全新的钩子流现已可以使用。
+
+### 简单使用
+
+1、在demo/hook/文件夹下创建一个全局钩子流，并设置类型 --class。
+
+    arkfbp-py createflow hook1 --class view
+
+2、创建节点Node1（过程略），并编辑。
+    
+    class Node1(FunctionNode):
+
+    id = 'node1'
+
+    def run(self, *args, **kwargs):
+        print(f'Hello, Hook!')
+        return None
+
+3、在demo/arkfbp/hooks/hook.json中设置流的执行位置。
+    
+    {
+        "before_route": ["hook.hook1"],
+        "before_flow": [],
+        "before_exception": [],
+        "before_response": []
+    }
+4、这样在每次路由之前，都会先进入hook1这个流进行处理。
+
+### 详解
+
+全局钩子式工作流运行的场景适用于：
+
+1）接口路由之前（before_route）
+
+2）工作流运行之前（before_flow）
+
+3）返回响应之前（before_response）
+
+4）抛出异常之前（before_exception）
+
+列表中流的摆放顺序，即为执行顺序。
 
 ## Flow Hook
 
@@ -206,6 +242,7 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
 ## ShutDown Flow
 
+### Flow Shutdown
 现在，你可以通过`flow.shutdown(outputs, **kwargs)`方法，来随时随地的停止工作流的运行
 
 如果你使用`ViewFlow`来定义流，那么可指定返回的`response`的状态码`response_status`，例如：
@@ -233,20 +270,54 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
         def before_initialize(inputs, *args, **kwargs):
             self.shutdown('Flow Error！', response_status=400)
 
+### Node Shutdown
+同样，你也可以通过`node.flow.shutdown(outputs, **kwargs)`方法，来随时随地的停止工作流的运行。
+
+如果你使用`ViewFlow`来定义流，那么可指定返回的`response`的状态码`response_status`，例如：
+    
+    class Node1(FunctionNode):
+
+    id = 'node1'
+
+    def run(self, *args, **kwargs):
+        print(f'Hello, Hook 1!')
+        self.flow.shutdown('Flow Error！', response_status=400)
 
 ## Flow State
 
 
 ## Flow Steps
 
-`flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据
+`flow.steps`为一个`dict`，其中包含以`node_id`为`key`、以`node_instance`为`value`的数据。
 
-现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`
+现在你可以在任何一个节点，从`node.state.steps`中，获取指定的已运行的`node`。
 
     node1 = node.state.steps.get('node1', None)
 
+## ViewFlow inputs
 
-## New Feature For CLI
+`ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
+
+### DataSet
+
+`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`。
+
+### extra_ds
+
+你可以在`extra_ds`中存放你想要传递下去的任何数据。
+
+### str
+
+`str`包含了请求体中的字符串信息。
+
+_注意：你可以随意为inputs增加任何属性，例如：_
+    
+    inputs.attr = {}
+
+_这样你就为`inputs`增加了`attr`的属性_
+
+
+## Feature For CLI
 
 ### Create Flow
 
@@ -299,35 +370,14 @@ before_route()、before_flow()的执行顺序依次为从上至下；after_flow(
 
     arkfbp-py createnode -h
 
-## ViewFlow inputs
-
-`ViewFlow`的`inputs`为原生的`django`的`WSGIRequest`对象，`ViewFlow`在此基础上为`inputs`对象增加了`data`、`extra_data`、`str`属性。
-
-### DataSet
-
-`ds`属性将原生`WSGIRequest`对象的`GET`和`POST`的数据合并为一个`dict`
-
-### extra_ds
-
-你可以在`extra_ds`中存放你想要传递下去的任何数据
-
-### str
-
-`str`包含了请求体中的字符串信息
-
-_注意：你可以随意为inputs增加任何属性，例如：_
-    
-    inputs.attr = {}
-
-_这样你就为`inputs`增加了`attr`的属性_
 
 ## TestFlow
 
 ### Create Flow     
 
-1、 通过`Quick Start`中的第四步新建一个工作流，新建的工作流的名称必须以`test`开头      
-2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`    
-3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`     
+1、 通过`Quick Start`中的第3步新建一个工作流，新建的工作流的名称必须以`test`开头。 
+2、 将该工作流`main.py`模块里`Main`函数的父类`ViewFlow`修改为`Flow`。  
+3、 将`from arkfbp.flow import ViewFlow`修改为`from arkfbp.flow import Flow`。  
 这样就得到一个测试流     
 测试流的`main.py`如下：         
 
@@ -355,9 +405,9 @@ _这样你就为`inputs`增加了`attr`的属性_
             ]     
 ### Create node
 
-1、 通过`Quick Start`中的第五步新建一个节点    
-2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`   
-3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`    
+1、 通过`Quick Start`中的第4步新建一个节点。 
+2、 将新建节点对应`python`文件里节点类的父类`FunctionNode`改为`TestNode`。   
+3、 新建节点对应`python`文件里`from arkfbp.node import FunctionNode`修改为`from arkfbp.node import TestNode`。    
 这样就得到一个测试节点     
 测试节点`node1`如下：
 
@@ -372,25 +422,25 @@ _这样你就为`inputs`增加了`attr`的属性_
 ### 测试节点使用      
 
 1、 `setUp`函数    
-测试节点的`setUp`函数将在测试用例执行之前调用，可用于准备数据等      
+测试节点的`setUp`函数将在测试用例执行之前调用，可用于准备数据等。      
 
     def setUp(self):
         print('before start test')
 
 2、 `tearDown`函数    
-测试节点的`tearDown`函数在测试用例全部执行之后调用    
+测试节点的`tearDown`函数在测试用例全部执行之后调用。    
 
     def tearDown(self):
         print('after finish test')
 
 3、 测试用例    
-测试用例为以`test_`开头的函数    
+测试用例为以`test_`开头的函数。    
 
     def test_one(self):
         pass
 
 4、 断言   
-测试节点支持`python`自带断言和`django unittest`的断言方法    
+测试节点支持`python`自带断言和`django unittest`的断言方法。    
 
     def test_one(self):
         assert 1==1
