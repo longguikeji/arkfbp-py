@@ -497,7 +497,7 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ### AddNode
 
-将一个已知的节点信息转入流的图定义（create_nodes）中
+将一个已知的节点信息同步到流的图定义（create_nodes）中
 
     python3 manage.py ext_addnode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
 
