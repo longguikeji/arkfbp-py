@@ -9,6 +9,8 @@ pylint = "*"
 [packages]
 django = "==3.1"
 six = "*"
+astunparse = "*"
+yapf = "*"
 
 [requires]
 python_version = "3.7"
