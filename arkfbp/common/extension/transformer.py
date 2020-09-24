@@ -41,7 +41,7 @@ class AddNodeTransformer(BaseTransformer):
             if type(x).__name__ == IMPORT_FROM:
                 if x.module == self.module:
                     for y in x.names:
-                        if y.name == self.clz:
+                        if y.name == self.clz and y.asname == self.clz_as:
                             return node
             else:
                 break
@@ -54,6 +54,7 @@ class AddNodeTransformer(BaseTransformer):
         clz = 'Main'
         base_clz = 'ViewFlow'
         func_name = 'create_nodes'
+        self.clz = self.clz_as if self.clz_as else self.clz
         if node.name == clz and node.bases[0].id == base_clz:
             for x in node.body:
                 if type(x).__name__ == FUNCTION_DEF and x.name == func_name:
