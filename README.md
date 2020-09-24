@@ -490,3 +490,23 @@ _这样你就为`inputs`增加了`attr`的属性_
     print(executer.FlowExecuter.start_all_test_flows('./app1/flows/'))
 
 若想运行全部测试流也可通过命令实现。在`manage.py`文件所在目录下输入命令`python3 manage.py flowtest`，即可直接运行所有测试流  
+
+## Extension CLI
+
+此部分内容适用于可视化插件开发相关人员
+
+### AddNode
+
+将一个已知的节点信息转入流的图定义（create_nodes）中
+
+    python3 manage.py ext_addnode --flow <flow_name> --node <node> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+
+#### 示例
+
+    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --node demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`node`代表相关节点的路径以`.`分隔，具体到类名；参数`id`代表相关节点的`id`；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`代表插件中的`x`坐标参数；参数`y`代表插件中的`y`坐标参数。你也可通过命令行获取相关信息：
+
+    arkfbp-py createnode -h
