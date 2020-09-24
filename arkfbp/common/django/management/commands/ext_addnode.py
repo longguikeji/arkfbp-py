@@ -27,12 +27,9 @@ class Command(BaseCommand):
             _ = node_clz.split('.')
             clz_path = '.'.join(_[:-1])
             clz = importlib.import_module(clz_path)
-            exec(f'_ = clz.{_[-1]}')
+            node_id = exec(f'clz.{_[-1]}.id')
         except ModuleNotFoundError:
             raise CommandError('Run failed, Invalid node.')
-
-        if not node_id:
-            raise CommandError('Run failed, Invalid node id.')
 
         filepath = ''
         _ = flow.split('.')
