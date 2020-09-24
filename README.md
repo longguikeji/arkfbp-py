@@ -499,14 +499,15 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 将一个已知的节点信息转入流的图定义（create_nodes）中
 
-    python3 manage.py ext_addnode --flow <flow_name> --node <node> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+    python3 manage.py ext_addnode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
 
 #### 示例
 
-    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --node demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
+    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
 
 #### 详解
 
-参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`node`代表相关节点的路径以`.`分隔，具体到类名；参数`id`代表相关节点的`id`；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`代表插件中的`x`坐标参数；参数`y`代表插件中的`y`坐标参数。你也可通过命令行获取相关信息：
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`class`代表相关节点的路径以`.`分隔，具体到类名；参数`id`代表相关节点的`id`；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`代表插件中的`x`坐标参数；参数`y`代表插件中的`y`坐标参数。
+参数`flow`和`node`是必选，其他可选。你也可通过命令行获取相关信息：
 
     arkfbp-py ext_addnode -h
