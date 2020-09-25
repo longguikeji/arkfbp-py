@@ -1,5 +1,4 @@
 import ast
-import os
 from typing import Any
 
 import astunparse
@@ -38,17 +37,19 @@ class AddNodeTransformer(BaseTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         # Remove Duplicates
-        for x in node.body:
+        insert_index = 0
+        for index, x in enumerate(node.body):
             if type(x).__name__ == IMPORT_FROM:
                 if x.module == self.module:
                     for y in x.names:
                         if y.name == self.clz and y.asname == self.clz_as:
                             return node
             else:
+                insert_index = index
                 break
         # add a ImportFrom Node
         new_node = ast.ImportFrom(module=self.module, names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
-        node.body.insert(0, new_node)
+        node.body.insert(insert_index, new_node)
         return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
@@ -82,16 +83,14 @@ class AddNodeTransformer(BaseTransformer):
 
 
 def parse_code(file):
-    file_path = os.path.join(os.getcwd(), file)
-    with open(file_path, 'r') as f:
+    with open(file, 'r') as f:
         node = ast.parse(f.read())
     return node
 
 
 def parse_ast(node, file):
-    file_path = os.path.join(os.getcwd(), file)
     code_body = astunparse.unparse(node)
-    with open(file_path, 'w') as f:
+    with open(file, 'w') as f:
         f.write(code_body)
     # reformat a string of code
-    FormatFile(file_path, style_config='pep8', in_place=True)
+    FormatFile(file, style_config='pep8', in_place=True)
