@@ -15,7 +15,6 @@ class Command(BaseCommand):
     def handle(self, **options):
         flow = options.get('flow')
         node_clz = options.get('class')
-        node_id = options.get('id')
         next_node_id = options.get('next')
         coord_x = options.get('x')
         coord_y = options.get('y')
@@ -53,7 +52,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--flow', type=str, help='Specifies the import path for name of flow.')
         parser.add_argument('--class', type=str, help='Specifies the import path for node.')
-        parser.add_argument('--id', type=str, help='Specifies the id for node.')
         parser.add_argument('--next', type=str, help='Specifies the next node id for the node.')
         parser.add_argument('--x', type=str, help='Specifies the coord x for node.')
         parser.add_argument('--y', type=str, help='Specifies the coord y for node.')
