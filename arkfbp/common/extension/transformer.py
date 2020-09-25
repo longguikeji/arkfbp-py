@@ -1,4 +1,5 @@
 import ast
+import os
 from typing import Any
 
 import astunparse
@@ -81,14 +82,16 @@ class AddNodeTransformer(BaseTransformer):
 
 
 def parse_code(file):
-    with open(file, 'r') as f:
+    file_path = os.path.join(os.getcwd(), file)
+    with open(file_path, 'r') as f:
         node = ast.parse(f.read())
     return node
 
 
 def parse_ast(node, file):
+    file_path = os.path.join(os.getcwd(), file)
     code_body = astunparse.unparse(node)
-    with open(file, 'w') as f:
+    with open(file_path, 'w') as f:
         f.write(code_body)
     # reformat a string of code
-    FormatFile(file, style_config='pep8', in_place=True)
+    FormatFile(file_path, style_config='pep8', in_place=True)

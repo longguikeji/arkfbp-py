@@ -61,9 +61,7 @@ class Executer:
             else:
                 raise CommandError('Invalid parameter: --http_method')
 
-            inputs = ViewFlow.convert_request(request)
-
-        self.start_flow(flow, inputs)
+        self.start_flow(flow, request)
 
     def start_test_flow(self, flow, inputs, *args, **kwargs):
         """start a test flow"""
@@ -90,9 +88,7 @@ class Executer:
             else:
                 raise Exception('Invalid parameter: http_method')
 
-            inputs = ViewFlow.convert_request(request)
-
-        self.start_flow(flow, inputs)
+        self.start_flow(flow, request)
 
     def search_flow(self, top_dir, abs_dirs=[]):
         for file in os.listdir(top_dir):
