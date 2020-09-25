@@ -505,6 +505,10 @@ _这样你就为`inputs`增加了`attr`的属性_
 
     python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
 
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+
 #### 详解
 
 参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`class`代表相关节点的路径以`.`分隔，具体到类名；参数`id`代表相关节点的`id`；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`代表插件中的`x`坐标参数；参数`y`代表插件中的`y`坐标参数。
