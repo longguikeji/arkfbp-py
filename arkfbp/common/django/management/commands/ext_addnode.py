@@ -47,7 +47,7 @@ class Command(BaseCommand):
         visitor = AddNodeTransformer(node_clz, node_id, coord_x=float(coord_x), coord_y=float(coord_y),
                                      next_node_id=next_node_id,
                                      clz_as=node_clz_alias)
-        visitor.execute(filepath, top_dir)
+        visitor.execute(filepath)
 
     def add_arguments(self, parser):
         parser.add_argument('--flow', type=str, help='Specifies the import path for name of flow.')

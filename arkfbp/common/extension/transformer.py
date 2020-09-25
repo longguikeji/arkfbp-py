@@ -1,6 +1,4 @@
 import ast
-import os
-import sys
 from typing import Any
 
 import astunparse
@@ -20,7 +18,7 @@ class BaseTransformer(ast.NodeTransformer):
         super(BaseTransformer, self).generic_visit(node)
         return node
 
-    def execute(self, file, top_dir):
+    def execute(self, file):
         """must be overridden"""
         pass
 
@@ -74,9 +72,7 @@ class AddNodeTransformer(BaseTransformer):
                             y.value.elts.append(dict_node)
         return node
 
-    def execute(self, file, top_dir):
-        if top_dir:
-            sys.path.append(top_dir)
+    def execute(self, file):
         r_node = parse_code(file)
         r_node = self.visit_Module(r_node)
         r_node = self.generic_visit(r_node)
@@ -85,16 +81,14 @@ class AddNodeTransformer(BaseTransformer):
 
 
 def parse_code(file):
-    file_path = os.path.join(os.getcwd(), file)
-    with open(file_path, 'r') as f:
+    with open(file, 'r') as f:
         node = ast.parse(f.read())
     return node
 
 
 def parse_ast(node, file):
-    file_path = os.path.join(os.getcwd(), file)
     code_body = astunparse.unparse(node)
-    with open(file_path, 'w') as f:
+    with open(file, 'w') as f:
         f.write(code_body)
     # reformat a string of code
-    FormatFile(file_path, style_config='pep8', in_place=True)
+    FormatFile(file, style_config='pep8', in_place=True)
