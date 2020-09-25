@@ -2,19 +2,19 @@ import importlib
 import os
 import sys
 
-from django.core.management.base import CommandError
-from django.core.management.templates import TemplateCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from arkfbp.common.extension.transformer import AddNodeTransformer
 
 
-class Command(TemplateCommand):
+class Command(BaseCommand):
     help = "For vscode extension to add a node in flow's main.py"
+    leave_locale_alone = True
+    requires_system_checks = False
 
     def handle(self, **options):
         flow = options.get('flow')
         node_clz = options.get('class')
-        node_id = options.get('id')
         next_node_id = options.get('next')
         coord_x = options.get('x')
         coord_y = options.get('y')
@@ -52,7 +52,6 @@ class Command(TemplateCommand):
     def add_arguments(self, parser):
         parser.add_argument('--flow', type=str, help='Specifies the import path for name of flow.')
         parser.add_argument('--class', type=str, help='Specifies the import path for node.')
-        parser.add_argument('--id', type=str, help='Specifies the id for node.')
         parser.add_argument('--next', type=str, help='Specifies the next node id for the node.')
         parser.add_argument('--x', type=str, help='Specifies the coord x for node.')
         parser.add_argument('--y', type=str, help='Specifies the coord y for node.')
