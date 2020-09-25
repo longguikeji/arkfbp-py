@@ -37,17 +37,19 @@ class AddNodeTransformer(BaseTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         # Remove Duplicates
-        for x in node.body:
+        insert_index = 0
+        for index, x in enumerate(node.body):
             if type(x).__name__ == IMPORT_FROM:
                 if x.module == self.module:
                     for y in x.names:
                         if y.name == self.clz and y.asname == self.clz_as:
                             return node
             else:
+                insert_index = index
                 break
         # add a ImportFrom Node
         new_node = ast.ImportFrom(module=self.module, names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
-        node.body.insert(0, new_node)
+        node.body.insert(insert_index, new_node)
         return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
