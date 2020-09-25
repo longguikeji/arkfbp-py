@@ -1,12 +1,14 @@
 import importlib
 import os
+import sys
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
+from django.core.management.templates import TemplateCommand
 
 from arkfbp.common.extension.transformer import AddNodeTransformer
 
 
-class Command(BaseCommand):
+class Command(TemplateCommand):
     help = "For vscode extension to add a node in flow's main.py"
 
     def handle(self, **options):
@@ -17,6 +19,11 @@ class Command(BaseCommand):
         coord_x = options.get('x')
         coord_y = options.get('y')
         node_clz_alias = options.get('alias')
+        top_dir = options.get('topdir')
+
+        if top_dir:
+            sys.path.append(top_dir)
+
         try:
             clz = importlib.import_module(f'{flow}.main')
             _ = clz.Main()
@@ -24,10 +31,10 @@ class Command(BaseCommand):
             raise CommandError('Run failed, Invalid flow.')
 
         try:
-            _ = node_clz.split('.')
-            clz_path = '.'.join(_[:-1])
+            _node_clz = node_clz.split('.')
+            clz_path = '.'.join(_node_clz[:-1])
             clz = importlib.import_module(clz_path)
-            node_id = exec(f'clz.{_[-1]}.id')
+            node_id = getattr(clz, _node_clz[-1]).id
         except ModuleNotFoundError:
             raise CommandError('Run failed, Invalid node.')
 
@@ -50,3 +57,4 @@ class Command(BaseCommand):
         parser.add_argument('--x', type=str, help='Specifies the coord x for node.')
         parser.add_argument('--y', type=str, help='Specifies the coord y for node.')
         parser.add_argument('--alias', type=str, help='Specifies the alias for node class.')
+        parser.add_argument('--topdir', type=str, help='Specifies the current top directory.')
