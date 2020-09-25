@@ -2,14 +2,15 @@ import importlib
 import os
 import sys
 
-from django.core.management.base import CommandError
-from django.core.management.templates import TemplateCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from arkfbp.common.extension.transformer import AddNodeTransformer
 
 
-class Command(TemplateCommand):
+class Command(BaseCommand):
     help = "For vscode extension to add a node in flow's main.py"
+    leave_locale_alone = True
+    requires_system_checks = False
 
     def handle(self, **options):
         flow = options.get('flow')
