@@ -507,7 +507,7 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
     
-    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+    arkfbp-py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
 
 #### 详解
 
