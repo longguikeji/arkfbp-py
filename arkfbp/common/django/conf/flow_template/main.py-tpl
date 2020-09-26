@@ -11,9 +11,14 @@ class Main({{ flow_base_class }}):
                 'cls': StartNode,
                 'id': 'start',
                 'next': 'stop'
+                'x': None,
+                'y': None
             },
             {
                 'cls': StopNode,
-                'id': 'stop'
+                'id': 'stop',
+                'next': None,
+                'x': None,
+                'y': None
             }
         ]
