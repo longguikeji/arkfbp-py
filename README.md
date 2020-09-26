@@ -531,6 +531,21 @@ _这样你就为`inputs`增加了`attr`的属性_
 参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表目标节点的唯一标识，用于指定修改的目标节点；参数`class`代表节点类型，其路径以`.`分隔并具体到类名，用于修改目标节点的类型；参数`next`代表后继节点的`id`，用于修改目标节点的后继节点；参数`alias`代表在`import`时，指定的节点类的别名，用于修改目标节点的类型别名；参数`x`和`y`分别代表插件中的`x`、`y`坐标，用于修改目标节点在插件中的坐标。
 参数`id`、`flow`是必选，其他可选，不选则默认不更改相应参数。你也可通过命令行获取相关信息：
 
-    arkfbp-py ext_addnode -h
+    arkfbp-py ext_updatenode -h
 
+### RemoveNode
 
+在流的图定义（create_nodes）中删除一个已知的节点信息，并自动更新前驱后继节点的连接信息。
+
+    python3 manage.py ext_removenode --flow <flow_name> --id <node_id>
+
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    arkfbp-py ext_removenode --flow app1.flows.flow1 --id node1 --topdir /Users/user/Development/demo
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表目标节点的唯一标识，用于指定删除的目标节点；
+参数`id`、`flow`是必选，其他可选。你也可通过命令行获取相关信息：
+
+    arkfbp-py ext_removenode -h
