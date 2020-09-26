@@ -41,6 +41,16 @@ class BaseTransformer(ast.NodeTransformer):
         # reformat a string of code
         FormatFile(file, style_config='pep8', in_place=True)
 
+    def valid_node(self, node: ast.Dict):
+        """检查图中节点信息是否符合规范"""
+        if len(node.keys) != len(NODE_DEFINE):
+            raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
+
+        for idx, key in enumerate(node.keys):
+            if key.s != NODE_DEFINE[idx]:
+                raise CommandError(
+                    f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
+
 
 class AddNodeTransformer(BaseTransformer):
 
@@ -77,7 +87,14 @@ class AddNodeTransformer(BaseTransformer):
                 if type(x).__name__ == FUNCTION_DEF and x.name == func_name:
                     for y in x.body:
                         if type(y).__name__ == RETURN:
-                            # check the node ID for duplicates TODO
+                            # check the node ID for duplicates
+                            for z in y.value.elts:
+                                # valid node
+                                self.valid_node(z)
+                                # update node
+                                if z.values[1].s == self.node_id:
+                                    raise CommandError('Run failed, duplicate node id')
+
                             dict_node = ast.Dict(
                                 keys=[ast.Str(s='cls'), ast.Str(s='id'), ast.Str(s='next'), ast.Num(n='x'),
                                       ast.Num(n='y')],
@@ -219,7 +236,6 @@ class UpdateNodeTransformer(BaseTransformer):
 
 
 class RemoveNodeTransformer(BaseTransformer):
-
     rm_old_clz = True
     old_clz = None
 
@@ -297,13 +313,3 @@ class RemoveNodeTransformer(BaseTransformer):
         node = self.generic_visit(node)
         node = self.visit_Module(node)
         return node
-
-    def valid_node(self, node: ast.Dict):
-        """检查图中节点信息是否符合规范"""
-        if len(node.keys) != len(NODE_DEFINE):
-            raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
-
-        for idx, key in enumerate(node.keys):
-            if key.s != NODE_DEFINE[idx]:
-                raise CommandError(
-                    f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
