@@ -2,11 +2,14 @@ import ast
 from typing import Any
 
 import astunparse
+from django.core.management import CommandError
 from yapf.yapflib.yapf_api import FormatFile
 
 IMPORT_FROM = 'ImportFrom'
 FUNCTION_DEF = 'FunctionDef'
 RETURN = 'Return'
+STR = 'Str'
+NODE_DEFINE = ['cls', 'id', 'next', 'x', 'y']
 
 
 class BaseTransformer(ast.NodeTransformer):
@@ -74,6 +77,7 @@ class AddNodeTransformer(BaseTransformer):
                 if type(x).__name__ == FUNCTION_DEF and x.name == func_name:
                     for y in x.body:
                         if type(y).__name__ == RETURN:
+                            # check the node ID for duplicates TODO
                             dict_node = ast.Dict(
                                 keys=[ast.Str(s='cls'), ast.Str(s='id'), ast.Str(s='next'), ast.Num(n='x'),
                                       ast.Num(n='y')],
@@ -84,6 +88,9 @@ class AddNodeTransformer(BaseTransformer):
                                         ast.Num(n=self.coord_y),
                                         ])
                             y.value.elts.append(dict_node)
+                            break
+                    break
+
         return node
 
     def handle(self, node):
@@ -168,7 +175,9 @@ class UpdateNodeTransformer(BaseTransformer):
                     for y in x.body:
                         if type(y).__name__ == RETURN:
                             for z in y.value.elts:
-                                # update node info
+                                # valid node
+                                self.valid_node(z)
+                                # update node
                                 if z.values[1].s == self.node_id:
                                     # class
                                     old_clz = z.values[0].id
@@ -187,6 +196,9 @@ class UpdateNodeTransformer(BaseTransformer):
                                     # coord y
                                     if self.coord_y:
                                         z.values[4] = ast.Num(n=self.coord_y)
+                                    break
+                            break
+                    break
 
         return node
 
@@ -194,3 +206,104 @@ class UpdateNodeTransformer(BaseTransformer):
         node = self.generic_visit(node)
         node = self.visit_Module(node)
         return node
+
+    def valid_node(self, node: ast.Dict):
+        """检查图中节点信息是否符合规范"""
+        if len(node.keys) != len(NODE_DEFINE):
+            raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
+
+        for idx, key in enumerate(node.keys):
+            if key.s != NODE_DEFINE[idx]:
+                raise CommandError(
+                    f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
+
+
+class RemoveNodeTransformer(BaseTransformer):
+
+    rm_old_clz = True
+    old_clz = None
+
+    def __init__(self, node_id):
+        self.node_id = node_id
+
+    def visit_Module(self, node: ast.Module) -> Any:
+        """
+        删除导入包的路径：
+        """
+        # remove old import?
+        _idx_1 = None
+        _idx_2 = None
+        if self.rm_old_clz:
+            for idx_x, x in enumerate(node.body):
+                if type(x).__name__ == IMPORT_FROM:
+                    for idx_y, y in enumerate(x.names):
+                        if y.asname and y.asname == self.old_clz:
+                            _idx_2 = idx_y
+                            break
+                        elif not y.asname and y.name == self.old_clz:
+                            _idx_2 = idx_y
+                            break
+                    if _idx_2 is not None:
+                        del x.names[_idx_2]
+                        _idx_1 = idx_x if not x.names else None
+                        break
+
+            if _idx_1 is not None:
+                del node.body[_idx_1]
+
+        return node
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        clz = 'Main'
+        base_clz = 'ViewFlow'
+        func_name = 'create_nodes'
+        if node.name == clz and node.bases[0].id == base_clz:
+            for x in node.body:
+                if type(x).__name__ == FUNCTION_DEF and x.name == func_name:
+                    for y in x.body:
+                        if type(y).__name__ == RETURN:
+                            _idx = None
+                            _target = None
+
+                            for idx, z in enumerate(y.value.elts):
+                                # valid node
+                                self.valid_node(z)
+                                # remove node
+                                if z.values[1].s == self.node_id:
+                                    _idx = idx
+                                    _target = z
+                                    self.old_clz = z.values[0].id
+                                    break
+
+                            if _target:
+                                # update relative node
+                                # the successor node of the precursor node changes to the successor node
+                                for k in y.value.elts:
+                                    self.valid_node(k)
+                                    if type(k.values[2]).__name__ == STR and k.values[2].s == _target.values[1].s:
+                                        k.values[2] = _target.values[2]
+                                    if k.values[0].id == _target.values[0].id and k.values[1].s != _target.values[1].s:
+                                        self.rm_old_clz = False
+
+                            if _idx is not None:
+                                del y.value.elts[_idx]
+                            break
+
+                    break
+
+        return node
+
+    def handle(self, node):
+        node = self.generic_visit(node)
+        node = self.visit_Module(node)
+        return node
+
+    def valid_node(self, node: ast.Dict):
+        """检查图中节点信息是否符合规范"""
+        if len(node.keys) != len(NODE_DEFINE):
+            raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
+
+        for idx, key in enumerate(node.keys):
+            if key.s != NODE_DEFINE[idx]:
+                raise CommandError(
+                    f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
