@@ -497,21 +497,40 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ### AddNode
 
-将一个已知的节点信息同步到流的图定义（create_nodes）中
+在流的图定义（create_nodes）中同步一个已知的节点信息。
 
-    python3 manage.py ext_addnode --flow <flow_name> --class <node_class> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+    python3 manage.py ext_addnode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
 
 #### 示例
 
-    python3 manage.py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
+    python3 manage.py ext_addnode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
 
 如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
     
-    arkfbp-py ext_addnode --flow demo.app1.flows.flow1 --class demo.app1.flows.flow1.nodes.node1.Node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+    arkfbp-py ext_addnode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
 
 #### 详解
 
-参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`class`代表相关节点的路径以`.`分隔，具体到类名；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`代表插件中的`x`坐标参数；参数`y`代表插件中的`y`坐标参数。
-参数`flow`和`class`是必选，其他可选。你也可通过命令行获取相关信息：
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表节点的唯一标识；参数`class`代表相关节点的路径以`.`分隔，具体到类名；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`和`y`分别代表插件中的`x`、`y`坐标。
+参数`id`、`flow`和`class`是必选，其他可选，不选则默认参数为`None`，你也可通过命令行获取相关信息：
 
     arkfbp-py ext_addnode -h
+
+### UpdateNode
+
+在流的图定义（create_nodes）中修改一个已知的节点信息。
+
+    python3 manage.py ext_updatenode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    arkfbp-py ext_updatenode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node2.Node2 --id node1 --next node3 --alias Flow1_Node2 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表目标节点的唯一标识，用于指定修改的目标节点；参数`class`代表节点类型，其路径以`.`分隔并具体到类名，用于修改目标节点的类型；参数`next`代表后继节点的`id`，用于修改目标节点的后继节点；参数`alias`代表在`import`时，指定的节点类的别名，用于修改目标节点的类型别名；参数`x`和`y`分别代表插件中的`x`、`y`坐标，用于修改目标节点在插件中的坐标。
+参数`id`、`flow`是必选，其他可选，不选则默认不更改相应参数。你也可通过命令行获取相关信息：
+
+    arkfbp-py ext_addnode -h
+
+
