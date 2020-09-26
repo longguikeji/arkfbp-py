@@ -1,9 +1,9 @@
 import os
+
 from django.core.management import CommandError
 from django.core.management.templates import TemplateCommand
 
 import arkfbp
-
 
 NODE_CLASS_MAP = {
     'base': 'Node',
@@ -72,4 +72,6 @@ class Command(TemplateCommand):
         parser.add_argument('--topdir', type=str, help='Specifies the file path for the node.')
         parser.add_argument('--class', type=str, help='Select the class that the node needs to inherit from.',
                             default='base', choices=NODE_CLASS_MAP.keys())
-        parser.add_argument('--id', type=str, help='Specifies the ID for the node.')
+        parser.add_argument('--id', type=str,
+                            help='Specifies the ID for the node(No practical use, '
+                                 'currently only available for vscode plug-ins).')

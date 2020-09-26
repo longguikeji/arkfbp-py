@@ -15,6 +15,7 @@ class Command(BaseCommand):
     def handle(self, **options):
         flow = options.get('flow')
         node_clz = options.get('class')
+        node_id = options.get('id')
         next_node_id = options.get('next')
         coord_x = options.get('x')
         coord_y = options.get('y')
@@ -23,6 +24,9 @@ class Command(BaseCommand):
 
         if top_dir:
             sys.path.append(top_dir)
+
+        if not node_id:
+            raise CommandError('Run failed, Invalid node id.')
 
         try:
             clz = importlib.import_module(f'{flow}.main')
@@ -35,7 +39,7 @@ class Command(BaseCommand):
             clz_path = '.'.join(_node_clz[:-1])
             clz = importlib.import_module(clz_path)
             node_id = getattr(clz, _node_clz[-1]).id
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, AttributeError):
             raise CommandError('Run failed, Invalid node.')
 
         filepath = ''
@@ -43,17 +47,17 @@ class Command(BaseCommand):
         _.append('main.py')
         for x in _:
             filepath = os.path.join(filepath, x)
+        filepath = os.path.join(top_dir, filepath)
 
         visitor = AddNodeTransformer(node_clz, node_id, coord_x=float(coord_x), coord_y=float(coord_y),
                                      next_node_id=next_node_id,
                                      clz_as=node_clz_alias)
-
-        filepath = os.path.join(top_dir, filepath)
         visitor.execute(filepath)
 
     def add_arguments(self, parser):
         parser.add_argument('--flow', type=str, help='Specifies the import path for name of flow.')
         parser.add_argument('--class', type=str, help='Specifies the import path for node.')
+        parser.add_argument('--id', type=str, help='Specifies the id for node.')
         parser.add_argument('--next', type=str, help='Specifies the next node id for the node.')
         parser.add_argument('--x', type=str, help='Specifies the coord x for node.')
         parser.add_argument('--y', type=str, help='Specifies the coord y for node.')

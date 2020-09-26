@@ -14,13 +14,29 @@ class BaseTransformer(ast.NodeTransformer):
     def generic_visit(self, node):
         # has_lineno = getattr(node, "lineno", "None")
         # col_offset = getattr(node, "col_offset", "None")
-        # print(type(node).__name__, has_lineno, col_offset)
         super(BaseTransformer, self).generic_visit(node)
         return node
 
+    def handle(self, node):
+        return node
+
     def execute(self, file):
-        """must be overridden"""
-        pass
+        r_node = self.parse_code(file)
+        r_node = self.handle(r_node)
+        self.parse_ast(r_node, file)
+        return r_node
+
+    def parse_code(self, file):
+        with open(file, 'r') as f:
+            node = ast.parse(f.read())
+        return node
+
+    def parse_ast(self, node, file):
+        code_body = astunparse.unparse(node)
+        with open(file, 'w') as f:
+            f.write(code_body)
+        # reformat a string of code
+        FormatFile(file, style_config='pep8', in_place=True)
 
 
 class AddNodeTransformer(BaseTransformer):
@@ -37,20 +53,16 @@ class AddNodeTransformer(BaseTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         # Remove Duplicates
-        insert_index = 0
-        for index, x in enumerate(node.body):
+        for idx, x in enumerate(node.body):
             if type(x).__name__ == IMPORT_FROM:
                 if x.module == self.module:
                     for y in x.names:
                         if y.name == self.clz and y.asname == self.clz_as:
                             return node
-            else:
-                insert_index = index
-                break
-        # add a ImportFrom Node
-        new_node = ast.ImportFrom(module=self.module, names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
-        node.body.insert(insert_index, new_node)
-        return node
+            # add a ImportFrom Node
+            new_node = ast.ImportFrom(module=self.module, names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
+            node.body.insert(idx, new_node)
+            return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
         clz = 'Main'
@@ -74,23 +86,111 @@ class AddNodeTransformer(BaseTransformer):
                             y.value.elts.append(dict_node)
         return node
 
-    def execute(self, file):
-        r_node = parse_code(file)
-        r_node = self.visit_Module(r_node)
-        r_node = self.generic_visit(r_node)
-        parse_ast(r_node, file)
-        return r_node
+    def handle(self, node):
+        node = self.visit_Module(node)
+        node = self.generic_visit(node)
+        return node
 
 
-def parse_code(file):
-    with open(file, 'r') as f:
-        node = ast.parse(f.read())
-    return node
+class UpdateNodeTransformer(BaseTransformer):
+    rm_old_clz = False
+    old_clz = None
 
+    def __init__(self, clz, node_id, next_node_id=None, coord_x=None, coord_y=None, clz_as=None):
+        self.module = None
+        self.clz = None
+        if clz:
+            _ = clz.split('.')
+            self.module = '.'.join(_[:-1])
+            self.clz = _[-1]
+        self.clz_as = clz_as
+        self.node_id = node_id
+        self.next_node_id = next_node_id
+        self.coord_x = coord_x
+        self.coord_y = coord_y
 
-def parse_ast(node, file):
-    code_body = astunparse.unparse(node)
-    with open(file, 'w') as f:
-        f.write(code_body)
-    # reformat a string of code
-    FormatFile(file, style_config='pep8', in_place=True)
+    def visit_Module(self, node: ast.Module) -> Any:
+        """
+        更新导入包的路径：
+            1）删除旧的导入路径。
+            2）添加新的导入路径。
+            3）更改当前导入路径。
+        """
+        # remove old import?
+        _idx_1 = None
+        _idx_2 = None
+        if self.rm_old_clz and self.old_clz:
+            for idx_x, x in enumerate(node.body):
+                if type(x).__name__ == IMPORT_FROM:
+                    for idx_y, y in enumerate(x.names):
+                        if y.asname and y.asname == self.old_clz:
+                            _idx_2 = idx_y
+                            break
+                        elif not y.asname and y.name == self.old_clz:
+                            _idx_2 = idx_y
+                            break
+                    if _idx_2 is not None:
+                        del x.names[_idx_2]
+                        _idx_1 = idx_x if not x.names else None
+                        break
+
+            if _idx_1 is not None:
+                del node.body[_idx_1]
+
+        # update clz
+        if self.clz:
+            same_clz = False
+            for idx, x in enumerate(node.body):
+                if type(x).__name__ == IMPORT_FROM:
+                    if x.module == self.module:
+                        for y in x.names:
+                            # 1) same import, update alias
+                            if y.name == self.clz:
+                                same_clz = True
+                                y.asname = self.clz_as if self.clz_as else y.asname
+                                break
+                # 2) different import, add new import
+                elif not same_clz:
+                    new_node = ast.ImportFrom(module=self.module,
+                                              names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
+                    node.body.insert(idx, new_node)
+                    break
+
+        return node
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        clz = 'Main'
+        base_clz = 'ViewFlow'
+        func_name = 'create_nodes'
+        if node.name == clz and node.bases[0].id == base_clz:
+            for x in node.body:
+                if type(x).__name__ == FUNCTION_DEF and x.name == func_name:
+                    for y in x.body:
+                        if type(y).__name__ == RETURN:
+                            for z in y.value.elts:
+                                # update node info
+                                if z.values[1].s == self.node_id:
+                                    # class
+                                    old_clz = z.values[0].id
+                                    if self.clz and self.clz != old_clz:
+                                        self.rm_old_clz = True
+                                        self.old_clz = old_clz
+                                        z.values[0].id = self.clz
+                                    elif self.clz_as and self.clz_as != old_clz:
+                                        z.values[0].id = self.clz_as
+                                    # id
+                                    if self.next_node_id:
+                                        z.values[2] = ast.Str(s=self.next_node_id)
+                                    # coord x
+                                    if self.coord_x:
+                                        z.values[3] = ast.Num(n=self.coord_x)
+                                    # coord y
+                                    if self.coord_y:
+                                        z.values[4] = ast.Num(n=self.coord_y)
+
+        return node
+
+    def handle(self, node):
+        node = self.generic_visit(node)
+        node = self.visit_Module(node)
+        return node
