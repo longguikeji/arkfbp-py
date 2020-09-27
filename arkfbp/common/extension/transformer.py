@@ -51,6 +51,16 @@ class BaseTransformer(ast.NodeTransformer):
                 raise CommandError(
                     f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
 
+    def process_NameConstant(self, param):
+        if param == 'undefined' or param is None:
+            return ast.NameConstant(value=None)
+
+        if type(param) is str:
+            return ast.Str(s=param)
+
+        if type(param) is float:
+            return ast.Num(n=param),
+
 
 class AddNodeTransformer(BaseTransformer):
 
@@ -100,7 +110,7 @@ class AddNodeTransformer(BaseTransformer):
                                       ast.Num(n='y')],
                                 values=[ast.Name(id=self.clz, ctx=ast.Load()),
                                         ast.Str(s=self.node_id),
-                                        ast.Str(s=self.next_node_id),
+                                        self.process_NameConstant(self.next_node_id),
                                         ast.Num(n=self.coord_x),
                                         ast.Num(n=self.coord_y),
                                         ])
@@ -206,7 +216,7 @@ class UpdateNodeTransformer(BaseTransformer):
                                         z.values[0].id = self.clz_as
                                     # id
                                     if self.next_node_id:
-                                        z.values[2] = ast.Str(s=self.next_node_id)
+                                        z.values[2] = self.process_NameConstant(self.next_node_id)
                                     # coord x
                                     if self.coord_x:
                                         z.values[3] = ast.Num(n=self.coord_x)
