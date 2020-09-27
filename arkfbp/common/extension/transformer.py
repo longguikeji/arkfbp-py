@@ -3,7 +3,7 @@ from typing import Any
 
 import astunparse
 from django.core.management import CommandError
-from yapf.yapflib.yapf_api import FormatFile, FormatCode
+from yapf.yapflib.yapf_api import FormatCode
 
 IMPORT_FROM = 'ImportFrom'
 FUNCTION_DEF = 'FunctionDef'
