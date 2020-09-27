@@ -3,7 +3,7 @@ from typing import Any
 
 import astunparse
 from django.core.management import CommandError
-from yapf.yapflib.yapf_api import FormatFile
+from yapf.yapflib.yapf_api import FormatFile, FormatCode
 
 IMPORT_FROM = 'ImportFrom'
 FUNCTION_DEF = 'FunctionDef'
@@ -37,9 +37,9 @@ class BaseTransformer(ast.NodeTransformer):
     def parse_ast(self, node, file):
         code_body = astunparse.unparse(node)
         with open(file, 'w') as f:
-            f.write(code_body)
-        # reformat a string of code
-        FormatFile(file, style_config='pep8', in_place=True)
+            # reformat a string of code
+            reformatted_source, _ = FormatCode(code_body, file, style_config='pep8')
+            f.write(reformatted_source)
 
     def valid_node(self, node: ast.Dict):
         """检查图中节点信息是否符合规范"""
