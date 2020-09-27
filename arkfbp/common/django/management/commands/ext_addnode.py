@@ -37,8 +37,7 @@ class Command(BaseCommand):
         try:
             _node_clz = node_clz.split('.')
             clz_path = '.'.join(_node_clz[:-1])
-            clz = importlib.import_module(clz_path)
-            node_id = getattr(clz, _node_clz[-1]).id
+            _ = importlib.import_module(clz_path)
         except (ModuleNotFoundError, AttributeError):
             raise CommandError('Run failed, Invalid node.')
 
