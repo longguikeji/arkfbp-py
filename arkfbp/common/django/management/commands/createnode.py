@@ -36,9 +36,18 @@ class Command(TemplateCommand):
         return ''.join(file_name)
 
     def _class_name(self, node_name):
-        cls_name = [x for x in node_name if x != '_']
-        cls_name[0] = cls_name[0].upper()
-        return ''.join(cls_name)
+        # 1）`_`后面字母大写
+        capital_idx = [0]
+        for idx, x in enumerate(node_name):
+            if x == '_' and idx + 1 <= len(node_name):
+                capital_idx.append(idx + 1)
+
+        node_name = list(node_name)
+        for x in capital_idx:
+            node_name[x] = node_name[x].upper()
+        node_name = ''.join(node_name)
+        # 2）去除`_`
+        return node_name.replace('_', '')
 
     def handle(self, **options):
         node_name = options.pop('name')
