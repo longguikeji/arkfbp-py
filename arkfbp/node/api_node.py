@@ -29,6 +29,7 @@ class APINode(Node):
     headers = None
     params = None
     json = True
+    files = None
 
     def __init__(self, *args, **kwargs):
         super(Node).__init__(*args, **kwargs)
@@ -41,8 +42,8 @@ class APINode(Node):
             return self._request_proxy()
 
     def _get_request_attr(self, name):
-        if hasattr(self, 'get_' + name):
-            return getattr(self, 'get_' + name)()
+        if hasattr(self, 'set_' + name):
+            return getattr(self, 'set_' + name)()
         if hasattr(self, name):
             return getattr(self, name)
         return exec(f'self.{name}')
@@ -56,6 +57,7 @@ class APINode(Node):
             raise Exception(f'Unknown request method,Please choose one in {REQUEST_METHOD}')
         self.params = self._get_request_attr('params')
         self.headers = self._get_request_attr('headers')
+        self.files = self._get_request_attr('files')
 
         if self.auth is not None:
             kwargs['auth'] = self.auth
@@ -71,6 +73,10 @@ class APINode(Node):
 
         if self.headers is not None:
             kwargs['headers'] = self.headers
+
+        if self.files is not None:
+            kwargs['files'] = self.files
+
         return kwargs
 
     def _request_direct(self):
