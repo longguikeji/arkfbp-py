@@ -1,9 +1,9 @@
 import os
+
 from django.core.management import CommandError
 from django.core.management.templates import TemplateCommand
 
 import arkfbp
-
 
 FLOW_CLASS_MAP = {
     'base': 'Flow',

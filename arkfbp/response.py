@@ -1,3 +1,2 @@
 class Response:
-
     pass

@@ -468,23 +468,23 @@ _这样你就为`inputs`增加了`attr`的属性_
 运行指定测试流需要通过调用函数实现。     
 1、 在项目目录下新建`python` 文件       
 2、 引入`executer`模块     
-3、 引入被运行测试流的`Main`类，调用函数`start_test_flow`运行测试流       
-函数`start_test_flow`有三个参数，第一个参数为被调用测试流`Main`类的实例，即`Main()`；第二个参数为输入的数据，字典类型；第三个参数为调用测试流的方法，为`get`。运行指定工作流如下：      
+3、 引入被运行测试流的`Main`类，调用函数`start_testflow`运行测试流       
+函数`start_testflow`有三个参数，第一个参数为被调用测试流`Main`类的实例，即`Main()`；第二个参数为输入的数据，字典类型；第三个参数为调用测试流的方法，为`get`。运行指定工作流如下：      
 
     from arkfbp.flow import executer
     from app1.flows.testtest.main import Main
 
-    print(executer.FlowExecuter.start_test_flow(Main(),inputs={},http_method='get'))
+    print(executer.FlowExecuter.start_testflow(Main(),inputs={},http_method='get'))
 
 #### 运行指定目录下测试流     
 
 1、 在项目目录下新建`python` 文件       
 2、 引入`executer`模块     
-3、 调用函数`start_all_test_flows`运行测试流        
-函数`start_all_test_flows`有一个参数，表示指定的目录，传入相对路径、绝对路径均可。运行指定工作流如下：        
+3、 调用函数`start_testflows`运行测试流        
+函数`start_testflows`有一个参数，表示指定的目录，传入相对路径、绝对路径均可。运行指定工作流如下：        
 
     from arkfbp.flow import executer
 
-    print(executer.FlowExecuter.start_all_test_flows('./app1/flows/'))
+    print(executer.FlowExecuter.start_testflows('./app1/flows/'))
 
 若想运行全部测试流也可通过命令实现。在`manage.py`文件所在目录下输入命令`python3 manage.py flowtest`，即可直接运行所有测试流  

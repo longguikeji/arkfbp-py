@@ -1,13 +1,11 @@
 from .base import Node
 
-
 # TriggerFlowNode metadata
 _NODE_NAME = 'trigger_flow'
 _NODE_KIND = 'trigger_flow'
 
 
 class TriggerFlowNode(Node):
-
     name = _NODE_NAME
     kind = _NODE_KIND
     flow_name = None

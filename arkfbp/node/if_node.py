@@ -1,13 +1,11 @@
 from .base import Node
 
-
 # IFNode metadata
 _NODE_NAME = 'if'
 _NODE_KIND = 'if'
 
 
 class IFNode(Node):
-
     name = _NODE_NAME
     kind = _NODE_KIND
 

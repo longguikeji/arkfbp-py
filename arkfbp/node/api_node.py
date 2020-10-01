@@ -1,4 +1,5 @@
 import requests
+
 from .base import Node
 
 # api mode for requests
@@ -19,7 +20,6 @@ _NODE_KIND = 'api'
 
 
 class APINode(Node):
-
     name = _NODE_NAME
     kind = _NODE_KIND
     url = ''

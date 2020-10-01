@@ -10,6 +10,7 @@ class State:
             ...,
         }
     """
+
     def __init__(self, init_data=None):
         self._nodes = []
         self._data = copy.deepcopy(init_data) if init_data else {}

@@ -7,11 +7,11 @@ from difflib import get_close_matches
 import django
 from django.apps import apps
 from django.conf import settings
+from django.core import management
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import color_style, CommandParser, handle_default_options, \
     CommandError, find_commands, BaseCommand, load_command_class
 from django.utils import autoreload
-from django.core import management
 
 
 @functools.lru_cache(maxsize=None)

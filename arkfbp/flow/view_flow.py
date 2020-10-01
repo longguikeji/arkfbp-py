@@ -2,8 +2,8 @@ from django.http import JsonResponse, HttpResponse
 from django.utils.decorators import classonlymethod
 from django.views import View
 
-from ..flow import Flow
-from ..flow.executer import FlowExecuter
+from .base import Flow
+from arkfbp.executer import Executer
 
 
 class ViewFlow(Flow, View):
@@ -22,7 +22,7 @@ class ViewFlow(Flow, View):
 
     def dispatch(self, request, *args, **kwargs):
         if request.method.upper() in self.allow_http_method:
-            return FlowExecuter.start_flow(self, request)
+            return Executer.start_flow(self, request)
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     @classonlymethod
