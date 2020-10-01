@@ -5,11 +5,9 @@ import six
 from cachetools import cached
 from cachetools.keys import hashkey
 
-from arkfbp.flow.executer import FlowExecuter
-
+from arkfbp.executer import Executer
 from ..graph import Graph, GraphParser
 from ..state import State, AppState
-
 
 FLOW_RUNNING = 'RUNNING'
 FLOW_CREATED = 'CREATED'
@@ -21,7 +19,6 @@ FLOW_STATUS = [FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED, FLOW_FROZEN
 
 @six.add_metaclass(abc.ABCMeta)
 class Flow:
-
     inputs = None
     outputs = None
     debug = True
@@ -94,7 +91,7 @@ class Flow:
                 graph_node = graph_parser.parse_graph_node(graph_node)
                 node = graph_node.instance
                 # 运行`node`实例
-                outputs = FlowExecuter.start_node(node, self, graph_node, *args, **kwargs)
+                outputs = Executer.start_node(node, self, graph_node, *args, **kwargs)
                 if not self.valid_status():
                     return self.outputs
                 graph_node = graph_node.next_graph_node(outputs)

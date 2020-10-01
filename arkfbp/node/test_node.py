@@ -1,8 +1,8 @@
 import sys
 
-from arkfbp.flow.executer import FlowExecuter
 from django.test import TestCase
 
+from arkfbp.executer import Executer
 from .base import Node
 
 
@@ -20,8 +20,8 @@ class TestNode(TestCase, Node):
         self.http_method = http_method
         self.content_type = content_type
         self.header = header
-        return FlowExecuter.start_test_flow(self.flow, self.inputs, http_method=self.http_method,
-                                            content_type=self.content_type, header=self.header)
+        return Executer.start_testflow(self.flow, self.inputs, http_method=self.http_method,
+                                       content_type=self.content_type, header=self.header)
 
     def run(self):
         self.setUp()

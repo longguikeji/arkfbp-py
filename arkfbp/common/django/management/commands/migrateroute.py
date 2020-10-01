@@ -4,8 +4,8 @@ import time
 from json.decoder import JSONDecodeError
 from os import path
 
-from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.template import Engine, Context
 
 import arkfbp
@@ -26,7 +26,8 @@ class Command(BaseCommand):
         in the same parent directory as settings.py, you need to manually
         specify the directory where ArkFBP is located.
         """
-        default_top_dir = settings.ARKFBP_CONF if hasattr(settings, 'ARKFBP_CONF') else settings.SETTINGS_MODULE.rsplit('.', 1)[0]
+        default_top_dir = settings.ARKFBP_CONF if hasattr(settings, 'ARKFBP_CONF') else \
+            settings.SETTINGS_MODULE.rsplit('.', 1)[0]
         top_dir = options.get('topdir')
         if not top_dir:
             top_dir = default_top_dir

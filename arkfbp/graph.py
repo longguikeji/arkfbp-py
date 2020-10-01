@@ -23,7 +23,6 @@ class Graph:
 
 
 class GraphNode:
-
     cls = None
     id = None
     next = None

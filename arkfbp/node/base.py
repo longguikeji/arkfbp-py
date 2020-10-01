@@ -1,6 +1,5 @@
 from abc import abstractmethod
 
-
 # Node metadata
 _NODE_ID = ''
 _NODE_NAME = 'base'
@@ -8,7 +7,6 @@ _NODE_KIND = 'base'
 
 
 class Node:
-
     id = _NODE_ID
     name = _NODE_NAME
     kind = _NODE_KIND

@@ -1,7 +1,7 @@
 import os
+import shutil
 import time
 from os import path
-import shutil
 
 import django
 from django.conf import settings
@@ -27,7 +27,7 @@ class Command(TemplateCommand):
         target = options.pop('directory')
         options['secret_key'] = get_random_secret_key()
         options.update(template=f'file://{arkfbp.__path__[0]}/common/django/conf/project_template')
-        options['extensions'] += ('.yml', )
+        options['extensions'] += ('.yml',)
         options.update(create_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         options.update(arkfbp_version=arkfbp.__version__)
 
@@ -87,7 +87,7 @@ class Command(TemplateCommand):
                                             base_subdir)
         prefix_length = len(template_dir) + 1
 
-        self.rewrite_template_suffixes += (('.yml-tpl', '.yml'), )
+        self.rewrite_template_suffixes += (('.yml-tpl', '.yml'),)
 
         for root, dirs, files in os.walk(template_dir):
             path_rest = root[prefix_length:]

@@ -1,7 +1,8 @@
 import os
 
-import arkfbp
 from django.core.management.templates import TemplateCommand
+
+import arkfbp
 
 
 class Command(TemplateCommand):

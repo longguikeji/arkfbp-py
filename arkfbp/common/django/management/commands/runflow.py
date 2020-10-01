@@ -1,7 +1,8 @@
 import importlib
 
-from arkfbp.flow.executer import FlowExecuter
 from django.core.management.base import BaseCommand, CommandError
+
+from arkfbp.executer import Executer
 
 
 class Command(BaseCommand):
@@ -15,7 +16,7 @@ class Command(BaseCommand):
         try:
             clz = importlib.import_module(f'{path}.main')
             instance = clz.Main()
-            FlowExecuter.cli_start_flow(instance, input, http_method=http_method, header=header)
+            Executer.cli_start_flow(instance, input, http_method=http_method, header=header)
         except ModuleNotFoundError:
             raise CommandError('Run failed, Invalid flow.')
 
