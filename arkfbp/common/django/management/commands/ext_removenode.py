@@ -19,6 +19,8 @@ class Command(BaseCommand):
 
         if top_dir:
             sys.path.append(top_dir)
+        else:
+            top_dir = ''
 
         if not node_id:
             raise CommandError('Run failed, Invalid node id.')

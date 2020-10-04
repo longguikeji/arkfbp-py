@@ -24,6 +24,11 @@ class Command(BaseCommand):
 
         if top_dir:
             sys.path.append(top_dir)
+        else:
+            top_dir = ''
+
+        coord_x = 0 if coord_x is None else coord_x
+        coord_y = 0 if coord_y is None else coord_y
 
         if not node_id:
             raise CommandError('Run failed, Invalid node id.')
