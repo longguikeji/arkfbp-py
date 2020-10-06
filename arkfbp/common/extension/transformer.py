@@ -1,3 +1,6 @@
+"""
+Ast and code convert to each other
+"""
 import ast
 from typing import Any
 
@@ -13,28 +16,38 @@ NODE_DEFINE = ['cls', 'id', 'next', 'x', 'y']
 
 
 class BaseTransformer(ast.NodeTransformer):
+    """Base Transformer"""
 
     def generic_visit(self, node):
-        # has_lineno = getattr(node, "lineno", "None")
-        # col_offset = getattr(node, "col_offset", "None")
+        """super generic_visit()"""
         super(BaseTransformer, self).generic_visit(node)
         return node
 
     def handle(self, node):
+        """
+        This contains the execution order of the processing nodes
+        """
         return node
 
     def execute(self, file):
+        """
+        ast <=> code
+        """
         r_node = self.parse_code(file)
         r_node = self.handle(r_node)
         self.parse_ast(r_node, file)
         return r_node
 
     def parse_code(self, file):
+        """parse code into ast"""
         with open(file, 'r') as f:
             node = ast.parse(f.read())
         return node
 
     def parse_ast(self, node, file):
+        """
+        unparse code into ast
+        """
         code_body = astunparse.unparse(node)
         with open(file, 'w') as f:
             # reformat a string of code
@@ -42,7 +55,9 @@ class BaseTransformer(ast.NodeTransformer):
             f.write(reformatted_source)
 
     def valid_node(self, node: ast.Dict):
-        """检查图中节点信息是否符合规范"""
+        """
+        Check that the node information in the diagram conforms to the specification
+        """
         if len(node.keys) != len(NODE_DEFINE):
             raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
 
@@ -52,6 +67,9 @@ class BaseTransformer(ast.NodeTransformer):
                     f'Run failed, Invalid graph.Each node must have these five properties in order:{NODE_DEFINE}')
 
     def process_NameConstant(self, param):
+        """
+        Automatically identify the conforming node and convert it to None node
+        """
         if param == 'undefined' or param is None:
             return ast.NameConstant(value=None)
 
@@ -59,10 +77,13 @@ class BaseTransformer(ast.NodeTransformer):
             return ast.Str(s=param)
 
         if type(param) is float:
-            return ast.Num(n=param),
+            return ast.Num(n=param)
 
 
 class AddNodeTransformer(BaseTransformer):
+    """
+    Add-Node Transformer
+    """
 
     def __init__(self, clz, node_id, next_node_id=None, coord_x=None, coord_y=None, clz_as=None):
         _ = clz.split('.')
@@ -75,6 +96,9 @@ class AddNodeTransformer(BaseTransformer):
         self.coord_y = coord_y
 
     def visit_Module(self, node: ast.Module) -> Any:
+        """
+        visit module
+        """
         # Remove Duplicates
         for idx, x in enumerate(node.body):
             if type(x).__name__ == IMPORT_FROM:
@@ -88,6 +112,9 @@ class AddNodeTransformer(BaseTransformer):
             return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        """
+        visit class def
+        """
         clz = 'Main'
         base_clz = 'ViewFlow'
         func_name = 'create_nodes'
@@ -105,28 +132,55 @@ class AddNodeTransformer(BaseTransformer):
                                 if z.values[1].s == self.node_id:
                                     raise CommandError('Run failed, duplicate node id')
 
-                            dict_node = ast.Dict(
-                                keys=[ast.Str(s='cls'), ast.Str(s='id'), ast.Str(s='next'), ast.Num(n='x'),
-                                      ast.Num(n='y')],
-                                values=[ast.Name(id=self.clz, ctx=ast.Load()),
-                                        ast.Str(s=self.node_id),
-                                        self.process_NameConstant(self.next_node_id),
-                                        ast.Num(n=self.coord_x),
-                                        ast.Num(n=self.coord_y),
-                                        ])
-                            y.value.elts.append(dict_node)
+                            dict_node = ast.Dict(keys=[
+                                ast.Str(s='cls'),
+                                ast.Str(s='id'),
+                                ast.Str(s='next'),
+                                ast.Num(n='x'),
+                                ast.Num(n='y')
+                            ],
+                                values=[
+                                    ast.Name(id=self.clz, ctx=ast.Load()),
+                                    ast.Str(s=self.node_id),
+                                    self.process_NameConstant(self.next_node_id),
+                                    ast.Num(n=self.coord_x),
+                                    ast.Num(n=self.coord_y),
+                                ])
+
+                            # try update relate node info
+                            for idx, item in enumerate(y.value.elts):
+                                try:
+                                    if item.values[2].s and item.values[2].s == self.next_node_id:
+                                        item.values[2].s = self.node_id
+                                except AttributeError:
+                                    continue
+
+                            # insert target node info
+                            if self.next_node_id:
+                                for idx, item in enumerate(y.value.elts):
+                                    if self.next_node_id == item.values[1].s:
+                                        y.value.elts.insert(idx, dict_node)
+                                        break
+                            else:
+                                y.value.elts.append(dict_node)
                             break
                     break
 
         return node
 
     def handle(self, node):
+        """
+        Override the parent class handler
+        """
         node = self.visit_Module(node)
         node = self.generic_visit(node)
         return node
 
 
 class UpdateNodeTransformer(BaseTransformer):
+    """
+    update node Transformer
+    """
     rm_old_clz = False
     old_clz = None
 
@@ -145,6 +199,7 @@ class UpdateNodeTransformer(BaseTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         """
+        visit module
         更新导入包的路径：
             1）删除旧的导入路径。
             2）添加新的导入路径。
@@ -186,13 +241,17 @@ class UpdateNodeTransformer(BaseTransformer):
                 # 2) different import, add new import
                 elif not same_clz:
                     new_node = ast.ImportFrom(module=self.module,
-                                              names=[ast.alias(name=self.clz, asname=self.clz_as)], level=0)
+                                              names=[ast.alias(name=self.clz, asname=self.clz_as)],
+                                              level=0)
                     node.body.insert(idx, new_node)
                     break
 
         return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        """
+        visit class def
+        """
         clz = 'Main'
         base_clz = 'ViewFlow'
         func_name = 'create_nodes'
@@ -230,12 +289,17 @@ class UpdateNodeTransformer(BaseTransformer):
         return node
 
     def handle(self, node):
+        """
+        Override the parent class handler
+        """
         node = self.generic_visit(node)
         node = self.visit_Module(node)
         return node
 
     def valid_node(self, node: ast.Dict):
-        """检查图中节点信息是否符合规范"""
+        """
+        Check that the node information in the diagram conforms to the specification
+        """
         if len(node.keys) != len(NODE_DEFINE):
             raise CommandError(f'Run failed, Invalid graph.Each node must have these five properties:{NODE_DEFINE}')
 
@@ -246,6 +310,9 @@ class UpdateNodeTransformer(BaseTransformer):
 
 
 class RemoveNodeTransformer(BaseTransformer):
+    """
+    Remove Node Transformer
+    """
     rm_old_clz = True
     old_clz = None
 
@@ -254,7 +321,7 @@ class RemoveNodeTransformer(BaseTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         """
-        删除导入包的路径：
+        visit module
         """
         # remove old import?
         _idx_1 = None
@@ -280,6 +347,9 @@ class RemoveNodeTransformer(BaseTransformer):
         return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        """
+        visit class def
+        """
         clz = 'Main'
         base_clz = 'ViewFlow'
         func_name = 'create_nodes'
@@ -320,6 +390,9 @@ class RemoveNodeTransformer(BaseTransformer):
         return node
 
     def handle(self, node):
+        """
+        Override the parent class handler
+        """
         node = self.generic_visit(node)
         node = self.visit_Module(node)
         return node

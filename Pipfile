@@ -17,6 +17,7 @@ django = "==3.1"
 six = "*"
 astunparse = "*"
 yapf = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"
