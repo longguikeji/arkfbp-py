@@ -27,6 +27,11 @@ class Command(BaseCommand):
 
         if top_dir:
             sys.path.append(top_dir)
+        else:
+            top_dir = ''
+
+        coord_x = 0 if coord_x is None else coord_x
+        coord_y = 0 if coord_y is None else coord_y
 
         try:
             clz = importlib.import_module(f'{flow}.main')
