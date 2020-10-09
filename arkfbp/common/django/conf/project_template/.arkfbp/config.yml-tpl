@@ -3,4 +3,5 @@ arkfbpSpecVersion: {{ arkfbp_version }}
 created: {{ create_time }}
 language: Python
 name: {{ project_name }}
-type: Django Server
+type: Server
+framework: Django

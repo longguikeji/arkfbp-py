@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring
 from .api_node import APINode
 from .base import Node
 from .function_node import FunctionNode
@@ -7,4 +8,4 @@ from .nop_node import NopNode
 from .start_node import StartNode
 from .stop_node import StopNode
 from .test_node import TestNode
-from .trigger_flow_node import TriggerFlowNode
+from .auth_node import AuthTokenNode
