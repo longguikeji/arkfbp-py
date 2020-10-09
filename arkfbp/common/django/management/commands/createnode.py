@@ -18,6 +18,7 @@ NODE_CLASS_MAP = {
     'nop': 'NopNode',
     'api': 'APINode',
     'test': 'TestNode',
+    'auth_token': 'AuthTokenNode',
 }
 
 
@@ -54,14 +55,15 @@ class Command(TemplateCommand):
             if x == '_' and idx + 1 <= len(node_name):
                 capital_idx.append(idx + 1)
 
-        node_name = [node_name]
+        node_name = list(node_name)
         for x in capital_idx:
             node_name[x] = node_name[x].upper()
         node_name = ''.join(node_name)
         # 2）去除`_`
         return node_name.replace('_', '')
 
-    def handle(self, app_or_project, name, target=None, **options):
+    # pylint: disable=arguments-differ
+    def handle(self, **options):
         node_name = options.pop('name')
         target = options.pop('topdir')
         base_class = options.pop('class')
