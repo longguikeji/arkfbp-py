@@ -1,3 +1,6 @@
+"""
+migrate route by ArkFBP cli
+"""
 import json
 import os
 import time
@@ -13,13 +16,17 @@ from arkfbp.common.api_visualization import DjangoVisualApi
 
 
 class Command(BaseCommand):
+    """
+    native command of django
+    """
     help = "Migrate route information from the form arkfbp to the native form django"
 
     def add_arguments(self, parser):
         parser.add_argument('--topdir', type=str, help='Specify the parent directory where ArkFBP resides.')
         parser.add_argument('--urlfile', type=str, help='Specify the destination file for the migration.')
 
-    def handle(self, **options):
+    # pylint: disable=too-many-locals
+    def handle(self, *args, **options):
         """
         By default, the ArkFBP folder is found in the same directory as the
         project configuration file Settings.py. If the ArkFBP folder is not
@@ -34,6 +41,7 @@ class Command(BaseCommand):
         route_dir = path.join(top_dir, 'arkfbp', 'routes')
         # Iterate through the entire folder
         modules_set, apis_set = [], []
+        # pylint: disable=unused-variable
         for root, dirs, files in os.walk(route_dir):
             for filename in files:
                 if not filename.endswith('.json'):
@@ -45,6 +53,7 @@ class Command(BaseCommand):
                     try:
                         json_routes = json.load(route_file)
                     except JSONDecodeError:
+                        # pylint: disable=raise-missing-from
                         raise CommandError(f'{filepath} Decoding Error!')
 
                     self.validate_route(filepath, json_routes)
@@ -53,13 +62,14 @@ class Command(BaseCommand):
                     modules_set.extend(modules)
         url_file = options.get('urlfile')
         if not url_file:
-            url_file = path.join(default_top_dir, 'auto_{}_migrate_urls.py'.format(
-                time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
-            ))
+            url_file = path.join(
+                default_top_dir,
+                'auto_{}_migrate_urls.py'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))))
 
         self.render(modules_set, apis_set, url_file)
 
-    def validate_route(self, filepath, route_info: dict):
+    @staticmethod
+    def validate_route(filepath, route_info: dict):
         """
         validate the data from the json file.
         """
@@ -76,14 +86,16 @@ class Command(BaseCommand):
         if not isinstance(route_info['routes'], list):
             raise CommandError(f'{filepath} Invalid! routes must be list.')
 
-    def load_api_context(self, routes_info: dict, handler: object):
+    @staticmethod
+    def load_api_context(routes_info: dict, handler: object):
         """
         Load the text information used to generate the django native urls.py file.
         """
         visual_api = handler(routes_info)
         return visual_api.generate_api_context()
 
-    def render(self, modules_set, apis_set, file_path):
+    @staticmethod
+    def render(modules_set, apis_set, file_path):
         """
         Render the text message to the urls.py file
         """
@@ -99,10 +111,14 @@ class Command(BaseCommand):
         for module in modules_set[1:]:
             module_text = f'{module_text}\n{module}'
 
-        context = Context({
-            'import_module': module_text,
-            'routes_info': api_text,
-        }, autoescape=False)
+        context = Context(
+            {
+                'import_module': module_text,
+                'routes_info': api_text,
+                'version': arkfbp.get_version(),
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+            },
+            autoescape=False)
 
         old_path = path.join(arkfbp.common.django.__path__[0], 'conf', 'route_template', 'urls_name.py-tpl')
         with open(old_path, 'r', encoding='utf-8') as template_file:
