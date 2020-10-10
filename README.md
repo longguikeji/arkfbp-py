@@ -577,7 +577,7 @@ _这样你就为`inputs`增加了`attr`的属性_
                 'y': None
             }]
 
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        return super(Main, self).dispatch(request, *args, **kwargs)
+        @csrf_exempt
+        def dispatch(self, request, *args, **kwargs):
+            return super(Main, self).dispatch(request, *args, **kwargs)
 
