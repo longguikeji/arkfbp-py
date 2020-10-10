@@ -550,3 +550,34 @@ _这样你就为`inputs`增加了`attr`的属性_
 参数`id`、`flow`是必选，其他可选。你也可通过命令行获取相关信息：
 
     arkfbp-py ext_removenode -h
+
+## special usages
+
+### csrf
+若想局部禁用或模拟csrf，只需要重写指定flow的Main Class的dispatch方法。示例如下：
+
+    from arkfbp.flow import ViewFlow
+    from arkfbp.node import StartNode, StopNode
+    from django.views.decorators.csrf import csrf_exempt
+
+    class Main(ViewFlow):
+        def create_nodes(self):
+            return [{
+                'cls': StartNode,
+                'id': 'start',
+                'next': 'stop',
+                'x': None,
+                'y': None
+            }，
+            {
+                'cls': StopNode,
+                'id': 'stop',
+                'next': None,
+                'x': None,
+                'y': None
+            }]
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super(Main, self).dispatch(request, *args, **kwargs)
+
