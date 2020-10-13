@@ -4,12 +4,14 @@ arkfbp-py is the python implementation of the arkfbp.
 
 # installation
 
+arkfbp-py需要 Python 3.6+ 及Django 2.0+ 的版本支持。
+
     pip3 install arkfbp (暂不可用)
     
     or
     
     pip3 install git+https://github.com/longguikeji/arkfbp-py.git@zzr/basic
-    
+
 # Dev installation
 
     python3 setup.py install
@@ -488,3 +490,113 @@ _这样你就为`inputs`增加了`attr`的属性_
     print(executer.FlowExecuter.start_testflows('./app1/flows/'))
 
 若想运行全部测试流也可通过命令实现。在`manage.py`文件所在目录下输入命令`python3 manage.py flowtest`，即可直接运行所有测试流  
+
+## Extension CLI
+
+此部分内容适用于可视化插件开发相关人员
+
+### AddNode
+
+在流的图定义（create_nodes）中同步一个已知的节点信息。
+
+    python3 manage.py ext_addnode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+
+#### 示例
+
+    python3 manage.py ext_addnode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456
+
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    arkfbp-py ext_addnode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node1.Node1 --id node1 --next node2 --alias Flow1_Node1 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表节点的唯一标识；参数`class`代表相关节点的路径以`.`分隔，具体到类名；参数`next`代表后继节点的`id`；参数`alias`代表在`import`时，指定的节点类的别名；参数`x`和`y`分别代表插件中的`x`、`y`坐标。
+参数`id`、`flow`和`class`是必选，其他可选，不选则默认参数为`None`，你也可通过命令行获取相关信息：
+
+    arkfbp-py ext_addnode -h
+
+### UpdateNode
+
+在流的图定义（create_nodes）中修改一个已知的节点信息。
+
+    python3 manage.py ext_updatenode --flow <flow_name> --class <node_class> --id <node_id> --next <next_node_id> --alias <node_alias> --x <coord_x> --y <coord_y>
+
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    arkfbp-py ext_updatenode --flow app1.flows.flow1 --class app1.flows.flow1.nodes.node2.Node2 --id node1 --next node3 --alias Flow1_Node2 --x 123.123456 --y 123.123456 --topdir /Users/user/Development/demo
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表目标节点的唯一标识，用于指定修改的目标节点；参数`class`代表节点类型，其路径以`.`分隔并具体到类名，用于修改目标节点的类型；参数`next`代表后继节点的`id`，用于修改目标节点的后继节点；参数`alias`代表在`import`时，指定的节点类的别名，用于修改目标节点的类型别名；参数`x`和`y`分别代表插件中的`x`、`y`坐标，用于修改目标节点在插件中的坐标。
+当你想要将`next`设置为`None`的时候，可以在传递参数时指定`--next`为`undefined`即可。
+参数`id`、`flow`是必选，其他可选，不选则默认不更改相应参数。你也可通过命令行获取相关信息：
+
+    arkfbp-py ext_updatenode -h
+
+### RemoveNode
+
+在流的图定义（create_nodes）中删除一个已知的节点信息，并自动更新前驱后继节点的连接信息。
+
+    python3 manage.py ext_removenode --flow <flow_name> --id <node_id>
+
+如果使用`arkfbp-py`命令，需指定`--topdir`参数，其代表项目的绝对根路径：
+    
+    arkfbp-py ext_removenode --flow app1.flows.flow1 --id node1 --topdir /Users/user/Development/demo
+
+#### 详解
+
+参数`flow`代表流的路径以`.`分隔，具体到流的文件夹名称；参数`id`代表目标节点的唯一标识，用于指定删除的目标节点；
+参数`id`、`flow`是必选，其他可选。你也可通过命令行获取相关信息：
+
+    arkfbp-py ext_removenode -h
+
+## special usages
+
+### csrf
+若想局部禁用或模拟csrf，只需要重写指定flow的Main Class的dispatch方法。示例如下：
+
+    from arkfbp.flow import ViewFlow
+    from arkfbp.node import StartNode, StopNode
+    from django.views.decorators.csrf import csrf_exempt
+
+    class Main(ViewFlow):
+        def create_nodes(self):
+            return [{
+                'cls': StartNode,
+                'id': 'start',
+                'next': 'stop',
+                'x': None,
+                'y': None
+            }，
+            {
+                'cls': StopNode,
+                'id': 'stop',
+                'next': None,
+                'x': None,
+                'y': None
+            }]
+
+        @csrf_exempt
+        def dispatch(self, request, *args, **kwargs):
+            return super(Main, self).dispatch(request, *args, **kwargs)
+
+### AuthTokenNode
+
+现在可以使用AuthTokenNode来快速搭建您的用户名+密码验证流程，示例如下：
+    
+    from arkfbp.node import AuthTokenNode
+
+    class VerifyPassword(AuthTokenNode):
+    
+        def get_ciphertext(self):
+            return 'ciphertext'
+
+        def before_execute(self, *args, **kwargs):
+            self.username_field = 'USERNAME'
+            self.password_field = 'PASSWORD'
+
+#### 详解
+其中，`get_ciphertext()`用于自定义从存储后端获取加密的数据；`get_key()`可自定义返回的`token`值，默认为生成一个新的`token`值；
+你也可以通过`before_execute()`等`run()`方法运行前的钩子来自定义`username_field`和`password_field`来指定获取账号名和账号密码的字段名称；
+`AuthTokenNode`在`run()`运行后默认返回一个长度为40的`token`字符串。
