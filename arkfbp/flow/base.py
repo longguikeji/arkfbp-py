@@ -1,3 +1,6 @@
+"""
+Base flow.
+"""
 import abc
 import sys
 
@@ -14,11 +17,14 @@ FLOW_CREATED = 'CREATED'
 FLOW_ERROR = 'ERROR'
 FLOW_STOPPED = 'STOPPED'
 FLOW_FROZEN = 'FROZEN'
-FLOW_STATUS = [FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED, FLOW_FROZEN]
+FLOW_STATUS = (FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED, FLOW_FROZEN)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class Flow:
+    """
+    base flow.
+    """
     inputs = None
     outputs = None
     debug = True
@@ -36,22 +42,33 @@ class Flow:
         self.error = None
         # 根据 Nodes & Edges 设置 next
 
+    # pylint: disable=missing-function-docstring
     def __str__(self):
         return f'Flow: {self.__class__}'
 
+    # pylint: disable=missing-function-docstring
     def __repr__(self):
         return self.__str__()
 
     @property
     def status(self):
+        """
+        status of flow.
+        """
         return self._status
 
     @property
     def state(self):
+        """
+        state of flow.
+        """
         return self._state
 
     @property
     def request(self):
+        """
+        request of flow,it always in a view flow.
+        """
         return self._request
 
     @request.setter
@@ -60,25 +77,38 @@ class Flow:
 
     @property
     def response(self):
+        """
+        response of flow,it always in a view flow.
+        """
         return self.outputs
 
     @cached(cache={}, key=lambda self: hashkey(self.__str__()))
     def create_graph(self):
-        """Returns the node information in JSON form"""
-        g = Graph()
-        g.graph_nodes = self.create_nodes()
-        g.edges = ['']
-        return g
+        """
+        Returns the node information in JSON form.
+        """
+        graph = Graph()
+        graph.graph_nodes = self.create_nodes()
+        graph.edges = ['']
+        return graph
 
     @abc.abstractmethod
     def create_nodes(self):
-        raise NotImplemented
+        """
+        override by subclass.
+        """
+        raise NotImplementedError
 
     def create_state(self):
-        """flow can override this function"""
+        """
+        flow can override this function.
+        """
         return self.state
 
-    def main(self, inputs=None, *args, **kwargs):
+    def main(self, inputs, *args, **kwargs):
+        """
+        main function of a flow.
+        """
         if inputs is not None:
             self.inputs = inputs
             self.outputs = inputs
@@ -95,25 +125,38 @@ class Flow:
                 if not self.valid_status():
                     return self.outputs
                 graph_node = graph_node.next_graph_node(outputs)
-        except Exception as e:
-            self.terminate(e)
+        # pylint:disable=broad-except
+        except Exception as exception:
+            self.terminate(exception)
 
         return self.outputs
 
     def shutdown(self, outputs):
+        """
+        Manually stop a workflow.
+        """
         self._status = FLOW_FROZEN
         self.outputs = outputs
         return self.response
 
     def terminate(self, exception):
+        """
+        when a exception raises in a flow,it will be called.
+        """
         self._status = FLOW_ERROR
         self.error = exception
 
     def die(self):
+        """
+        a flow ends normally.
+        """
         self._status = FLOW_STOPPED
         return self.response
 
     def log_debug(self):
+        """
+        debug for a flow info when it runs.
+        """
         if not self.debug:
             return
 
@@ -129,26 +172,41 @@ class Flow:
         sys.stdout.write(f'------------- DEBUG END ({self}) -------------\n')
 
     def before_initialize(self, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def init(self, inputs, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def initialized(self, inputs, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def before_execute(self, inputs, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def executed(self, inputs, ret, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def before_destroy(self, inputs, ret, *args, **kwargs):
-        """overridden by user"""
+        """
+        overridden by user.
+        """
 
     def valid_status(self, target=None):
+        """
+        Verify the state of a flow to determine whether to continue running.
+        """
         if target in FLOW_STATUS:
-            return True if target == self._status else False
+            return target == self._status
 
         if self._status in [FLOW_STOPPED, FLOW_ERROR, FLOW_FROZEN]:
             return False

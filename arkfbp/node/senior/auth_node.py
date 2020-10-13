@@ -17,7 +17,7 @@ _NODE_NAME = 'auth_token'
 _NODE_KIND = 'auth_token'
 _USERNAME = 'username'
 _PASSWORD = 'password'
-_ENCRYPTION = ['SSHA', 'SMD5', 'MD5', 'SHA']
+_ENCRYPTION = ('SSHA', 'SMD5', 'MD5', 'SHA')
 
 
 class AuthTokenNode(FunctionNode):
