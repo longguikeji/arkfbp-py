@@ -64,8 +64,10 @@ class AuthTokenNode(FunctionNode):
         """
         verify password
         """
+        if plaintext is None or ciphertext is None:
+            return False
+
         self.valid_encryption()
-        # 通过配置的加密方式验证密码
         if ciphertext.startswith('{SSHA}'):
             return ldap_salted_sha1.verify(plaintext, ciphertext)
 
