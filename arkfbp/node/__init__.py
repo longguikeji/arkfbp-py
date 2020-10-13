@@ -8,4 +8,4 @@ from .nop_node import NopNode
 from .start_node import StartNode
 from .stop_node import StopNode
 from .test_node import TestNode
-from .auth_node import AuthTokenNode
+from .senior.auth_node import AuthTokenNode

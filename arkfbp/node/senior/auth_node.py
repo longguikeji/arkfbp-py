@@ -10,7 +10,7 @@ from passlib.hash import (
     ldap_salted_md5,
     ldap_salted_sha1,
 )
-from .function_node import FunctionNode
+from ..function_node import FunctionNode
 
 # AuthTokenNode metadata
 _NODE_NAME = 'auth_token'
