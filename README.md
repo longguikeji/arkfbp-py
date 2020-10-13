@@ -581,3 +581,22 @@ _这样你就为`inputs`增加了`attr`的属性_
         def dispatch(self, request, *args, **kwargs):
             return super(Main, self).dispatch(request, *args, **kwargs)
 
+### AuthTokenNode
+
+现在可以使用AuthTokenNode来快速搭建您的用户名+密码验证流程，示例如下：
+    
+    from arkfbp.node import AuthTokenNode
+
+    class VerifyPassword(AuthTokenNode):
+    
+        def get_ciphertext(self):
+            return 'ciphertext'
+
+        def before_execute(self, *args, **kwargs):
+            self.username_field = 'USERNAME'
+            self.password_field = 'PASSWORD'
+
+#### 详解
+其中，`get_ciphertext()`用于自定义从存储后端获取加密的数据；`get_key()`可自定义返回的`token`值，默认为生成一个新的`token`值；
+你也可以通过`before_execute()`等`run()`方法运行前的钩子来自定义`username_field`和`password_field`来指定获取账号名和账号密码的字段名称；
+`AuthTokenNode`在`run()`运行后默认返回一个长度为40的`token`字符串。

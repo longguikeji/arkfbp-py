@@ -1,6 +1,9 @@
 """
 Auth Node
 """
+import binascii
+import os
+
 from passlib.hash import (
     ldap_md5,
     ldap_sha1,
@@ -40,7 +43,7 @@ class AuthTokenNode(FunctionNode):
         ciphertext = self.get_ciphertext()
         if not self.verify_password(password, ciphertext):
             return self.flow.shutdown({'detail': '身份认证信息无效'}, response_status=400)
-        return self.get_token()
+        return self.get_key()
 
     def get_credentials(self, username_field=None, password_field=None):
         """
@@ -97,22 +100,29 @@ class AuthTokenNode(FunctionNode):
 
         raise ValueError("encryption must be one of 'SSHA', 'SMD5', 'SHA', 'MD5'")
 
-    # pylint: disable=no-self-use
-    def get_ciphertext(self):
-        """
-        override by subclass.
-        """
-        raise NotImplementedError
-
-    def get_token(self):
-        """
-        override by subclass.
-        """
-        raise NotImplementedError
-
     def valid_encryption(self):
         """
         valid AuthTokenNode encryption
         """
         if self.encryption not in _ENCRYPTION:
             raise ValueError("encryption must be one of 'SSHA', 'SMD5', 'SHA', 'MD5'")
+
+    def get_key(self):
+        """
+        override by subclass.
+        """
+        return self.generate_key()
+
+    @staticmethod
+    def generate_key():
+        """
+        it can be overridden by subclass.
+        """
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    # pylint: disable=no-self-use
+    def get_ciphertext(self):
+        """
+        override by subclass.
+        """
+        raise NotImplementedError
