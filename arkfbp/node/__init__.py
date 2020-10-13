@@ -9,3 +9,4 @@ from .start_node import StartNode
 from .stop_node import StopNode
 from .test_node import TestNode
 from .senior.auth_node import AuthTokenNode
+from .senior.serializer_node import SerializerNode

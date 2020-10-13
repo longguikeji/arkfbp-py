@@ -19,6 +19,7 @@ NODE_CLASS_MAP = {
     'api': 'APINode',
     'test': 'TestNode',
     'auth_token': 'AuthTokenNode',
+    'serializer': 'SerializerNode',
 }
 
 
