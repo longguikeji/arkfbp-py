@@ -1,3 +1,6 @@
+"""
+Executer for both flow and node
+"""
 import importlib
 import json
 import os
@@ -9,10 +12,11 @@ from django.test import RequestFactory
 
 class Executer:
     """executer for flows and nodes"""
-
     @classmethod
     def start_flow(cls, flow, inputs, *args, **kwargs):
-
+        """
+        start a flow
+        """
         flow.request = inputs
         flow.before_initialize(inputs, *args, **kwargs)
 
@@ -39,7 +43,10 @@ class Executer:
 
     @classmethod
     def cli_start_flow(cls, flow, inputs, *args, **kwargs):
-        """start a flow by cli"""
+        """
+        start a flow by cli
+        """
+        # pylint: disable=import-outside-toplevel
         from .flow import ViewFlow
         if isinstance(flow, ViewFlow):
             http_method = kwargs.get('http_method')
@@ -63,11 +70,12 @@ class Executer:
             else:
                 raise CommandError('Invalid parameter: --http_method')
 
-        cls.start_flow(flow, request)
+        cls.start_flow(flow, request, *args, **kwargs)
 
     @classmethod
     def start_testflow(cls, flow, inputs, *args, **kwargs):
         """start a test flow"""
+        # pylint: disable=import-outside-toplevel
         from .flow import ViewFlow
         if isinstance(flow, ViewFlow):
             http_method = kwargs.get('http_method')
@@ -91,11 +99,16 @@ class Executer:
             else:
                 raise Exception('Invalid parameter: http_method')
 
-        cls.start_flow(flow, request)
+        cls.start_flow(flow, request, *args, **kwargs)
 
     @classmethod
     def start_testflows(cls, top_dir):
-        def collect(_top_dir, _abs_dirs=[]):
+        """
+        start a test flow
+        """
+        def collect(_top_dir, _abs_dirs=None):
+            if _abs_dirs is None:
+                _abs_dirs = []
             for file in os.listdir(_top_dir):
                 path = os.path.join(_top_dir, file)
                 if os.path.isdir(path):
@@ -113,13 +126,16 @@ class Executer:
                 print(path)
                 clz = importlib.import_module(path)
                 flow = clz.Main()
-                sys.stdout.write(
-                    cls.start_testflow(flow, inputs={}, http_method='get') + '\n')
-            except Exception as e:
-                sys.stdout.write(e.__str__())
+                sys.stdout.write(cls.start_testflow(flow, inputs={}, http_method='get') + '\n')
+            # pylint: disable=broad-except
+            except Exception as exception:
+                sys.stdout.write(exception.__str__())
 
     @classmethod
-    def start_node(cls, node, flow, graph_node, *args, **kwargs):
+    def start_node(cls, node, flow, *args, graph_node=None, **kwargs):
+        """
+        start a node
+        """
         node.flow = flow
 
         if flow.valid_status():
@@ -130,7 +146,7 @@ class Executer:
 
         if flow.valid_status():
             node.init(*args, **kwargs)
-            node.id = graph_node.id
+            node.id = graph_node.id if graph_node else node.__class__.__name__
             node.state = flow.state
             node.inputs = flow.outputs
 

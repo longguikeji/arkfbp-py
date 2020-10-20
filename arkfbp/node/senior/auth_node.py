@@ -10,30 +10,30 @@ from passlib.hash import (
     ldap_salted_md5,
     ldap_salted_sha1,
 )
-from .function_node import FunctionNode
+from ..function_node import FunctionNode
 
 # AuthTokenNode metadata
 _NODE_NAME = 'auth_token'
 _NODE_KIND = 'auth_token'
 _USERNAME = 'username'
 _PASSWORD = 'password'
-_ENCRYPTION = ['SSHA', 'SMD5', 'MD5', 'SHA']
+_ENCRYPTION = ('SSHA', 'SMD5', 'MD5', 'SHA')
 
 
 class AuthTokenNode(FunctionNode):
     """
-    Auth Token Node
+    Auth Token Node.
+    Used for authentication of WEB projects.
     """
     name = _NODE_NAME
     kind = _NODE_KIND
     username_field = None
     password_field = None
-    web_framework = 'Django'
     encryption = _ENCRYPTION[0]
 
     def run(self, *args, **kwargs):
         """
-        run node
+        run node.
         """
         # pylint: disable=unused-variable
         username, password = self.get_credentials(
@@ -47,22 +47,17 @@ class AuthTokenNode(FunctionNode):
 
     def get_credentials(self, username_field=None, password_field=None):
         """
-        get credentials
+        get credentials.
         """
-        # 获取request的框架信息 TODO
-        web_framework = self.web_framework
-        # 获取username和password
-        if web_framework.lower() == 'django':
-            username = self.inputs.ds.get(username_field or 'username', None)
-            password = self.inputs.ds.get(password_field or 'password', None)
-            if username is None or password is None:
-                self.flow.shutdown({'detail': '身份认证信息缺失'}, response_status=400)
-            return username, password
-        self.flow.shutdown({'detail': '无法获取身份认证信息'}, response_status=400)
+        username = self.inputs.ds.get(username_field or 'username', None)
+        password = self.inputs.ds.get(password_field or 'password', None)
+        if username is None or password is None:
+            self.flow.shutdown({'detail': '身份认证信息缺失'}, response_status=400)
+        return username, password
 
     def verify_password(self, plaintext, ciphertext):
         """
-        verify password
+        verify password.
         """
         if plaintext is None or ciphertext is None:
             return False
@@ -84,7 +79,7 @@ class AuthTokenNode(FunctionNode):
 
     def encrypt_password(self, plaintext):
         """
-        encrypt password
+        encrypt password.
         """
         self.valid_encryption()
         # 加密密码
@@ -104,7 +99,7 @@ class AuthTokenNode(FunctionNode):
 
     def valid_encryption(self):
         """
-        valid AuthTokenNode encryption
+        valid AuthTokenNode encryption.
         """
         if self.encryption not in _ENCRYPTION:
             raise ValueError("encryption must be one of 'SSHA', 'SMD5', 'SHA', 'MD5'")

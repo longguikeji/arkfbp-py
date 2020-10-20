@@ -6,3 +6,4 @@ class {{ camel_case_node_name }}({{ node_base_class }}):
 
     def run(self, *args, **kwargs):
         print(f'Hello, {{ camel_case_node_name }}!')
+        return super({{ camel_case_node_name }}, self).run(*args, **kwargs)
