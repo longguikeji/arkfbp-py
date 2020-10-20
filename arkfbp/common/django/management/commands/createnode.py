@@ -20,6 +20,8 @@ NODE_CLASS_MAP = {
     'test': 'TestNode',
     'auth_token': 'AuthTokenNode',
     'serializer': 'SerializerNode',
+    'field': 'FieldNode',
+    'char_field': 'CharFieldNode',
 }
 
 
