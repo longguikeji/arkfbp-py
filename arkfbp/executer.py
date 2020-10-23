@@ -80,7 +80,7 @@ class Executer:
         if isinstance(flow, ViewFlow):
             http_method = kwargs.get('http_method')
             content_type = kwargs.get('content_type', 'application/json')
-            header = kwargs.get('header')
+            header = kwargs.get('header', {})
             if not http_method:
                 raise Exception('Lack of parameter: http_method')
             if header:
