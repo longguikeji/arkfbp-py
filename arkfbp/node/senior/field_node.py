@@ -46,7 +46,6 @@ class FieldNode(FunctionNode):
         if required is None:
             required = not read_only
 
-        required = required if required else read_only
         # Some combinations of keyword arguments do not make sense.
         assert not (read_only and write_only), NOT_READ_ONLY_WRITE_ONLY
         assert not (read_only and required), NOT_READ_ONLY_REQUIRED
@@ -67,6 +66,7 @@ class FieldNode(FunctionNode):
         # These are set up by `.bind()` when the field is added to a serializer node.
         self.field_name = None
         self.parent = None
+        self.show_value = None
 
         # Collect default error message from self and parent classes
         messages = {}
@@ -104,10 +104,11 @@ class FieldNode(FunctionNode):
 
         # self.source_attrs is a list of attributes that need to be looked up
         # when serializing the instance, or populating the validated data.
-        if self.source == '*':
-            self.source_attrs = []
-        else:
-            self.source_attrs = self.source.split('.')
+        # TODO 指定source为其他model中的一个字段: github_user.user.id
+        # if self.source == '*':
+        #     self.source_attrs = []
+        # else:
+        #     self.source_attrs = self.source.split('.')
 
     def run(self, *args, **kwargs):
         """
@@ -115,18 +116,31 @@ class FieldNode(FunctionNode):
         then run validate function which is defined by user.
         """
         error_list = []
+        try:
+            self.show_value = self.get_value()
+        except ValidationError as exception:
+            error_list.append(exception.message_dict[self.field_name])
+            return self.message_dict(error_list)
+
         for validator in self.validators:
             try:
-                validator(self.get_value())
+                validator(self.show_value)
             except ValidationError as exception:
                 error_list.append(exception.message_dict[self.field_name])
-        return {self.field_name: error_list} if error_list else {}
+
+        return self.message_dict(error_list)
 
     def get_value(self):
         """
         get show value.
         """
-        ret = self.inputs.ds[self.field_name]
+        if isinstance(self.inputs, dict):
+            ret = self.inputs.get(self.field_name, None)
+        else:
+            ret = self.inputs.get(self.field_name, None)
+        if ret is None and self.required:
+            raise ValidationError({self.field_name: self.error_messages['required']})
+
         if ret == '':
             if self.allow_null or not self.required:
                 return '' if getattr(self, 'allow_blank', False) else None
@@ -148,8 +162,20 @@ class FieldNode(FunctionNode):
         """
         self._validators = validators
 
+    def source_field(self, field):
+        """
+        if source is None,return field.
+        """
+        return self.source or field
 
-# FieldNode metadata
+    def message_dict(self, error_list):
+        """
+        error message in dict.
+        """
+        return {} if not error_list else {self.field_name: error_list}
+
+
+# CharFieldNode metadata
 _CHAR_FIELDNODE_NAME = 'char_field'
 _CHAR_FIELDNODE_KIND = 'char_field'
 
@@ -204,3 +230,91 @@ class CharFieldNode(FieldNode):
             if not self.allow_blank:
                 raise ValidationError({self.field_name: self.error_messages['blank']})
             return ''
+
+
+# IntegerFieldNode metadata
+_INTEGER_FIELDNODE_NAME = 'integer_field'
+_INTEGER_FIELDNODE_KIND = 'integer_field'
+
+
+class IntegerFieldNode(FieldNode):
+    """
+    integer field node.
+    """
+    name = _INTEGER_FIELDNODE_NAME
+    kind = _INTEGER_FIELDNODE_KIND
+
+    default_error_messages = {
+        'invalid': 'A valid integer is required.',
+        'max_value': 'Ensure this value is less than or equal to {max_value}.',
+        'min_value': 'Ensure this value is greater than or equal to {min_value}.',
+    }
+
+    def __init__(self, *args, max_value=None, min_value=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if max_value is not None:
+            self.max_value = max_value
+            self.validators.append(self.max_value_validator)
+        if min_value is not None:
+            self.min_value = min_value
+            self.validators.append(self.min_value_validator)
+
+    def max_value_validator(self, value):
+        """
+        max length validator.
+        """
+        if int(value) > self.max_value:
+            message = LazyFormat(self.error_messages['max_value'], max_value=self.max_value, show_value=value)
+            raise ValidationError({self.field_name: message})
+
+    def min_value_validator(self, value):
+        """
+        min length validator.
+        """
+        if int(value) < self.min_value:
+            message = LazyFormat(self.error_messages['min_value'], min_value=self.min_value, show_value=value)
+            raise ValidationError({self.field_name: message})
+
+
+# FloatFieldNode metadata
+_FLOAT_FIELDNODE_NAME = 'float_field'
+_FLOAT_FIELDNODE_KIND = 'float_field'
+
+
+class FloatFieldNode(FieldNode):
+    """
+    float field node.
+    """
+    name = _FLOAT_FIELDNODE_NAME
+    kind = _FLOAT_FIELDNODE_KIND
+
+    default_error_messages = {
+        'invalid': 'A valid number is required.',
+        'max_value': 'Ensure this value is less than or equal to {max_value}.',
+        'min_value': 'Ensure this value is greater than or equal to {min_value}.',
+    }
+
+    def __init__(self, *args, max_value=None, min_value=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if max_value is not None:
+            self.max_value = max_value
+            self.validators.append(self.max_value_validator)
+        if min_value is not None:
+            self.min_value = min_value
+            self.validators.append(self.min_value_validator)
+
+    def max_value_validator(self, value):
+        """
+        max length validator.
+        """
+        if float(value) > self.max_value:
+            message = LazyFormat(self.error_messages['max_value'], max_value=self.max_value, show_value=value)
+            raise ValidationError({self.field_name: message})
+
+    def min_value_validator(self, value):
+        """
+        min length validator.
+        """
+        if float(value) < self.min_value:
+            message = LazyFormat(self.error_messages['min_value'], min_value=self.min_value, show_value=value)
+            raise ValidationError({self.field_name: message})

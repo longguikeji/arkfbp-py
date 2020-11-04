@@ -4,7 +4,6 @@ Base flow.
 import abc
 import sys
 
-import six
 from cachetools import cached
 from cachetools.keys import hashkey
 
@@ -20,7 +19,6 @@ FLOW_FROZEN = 'FROZEN'
 FLOW_STATUS = (FLOW_CREATED, FLOW_RUNNING, FLOW_ERROR, FLOW_STOPPED, FLOW_FROZEN)
 
 
-@six.add_metaclass(abc.ABCMeta)
 class Flow:
     """
     base flow.

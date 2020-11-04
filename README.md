@@ -600,3 +600,169 @@ _这样你就为`inputs`增加了`attr`的属性_
 其中，`get_ciphertext()`用于自定义从存储后端获取加密的数据；`get_key()`可自定义返回的`token`值，默认为生成一个新的`token`值；
 你也可以通过`before_execute()`等`run()`方法运行前的钩子来自定义`username_field`和`password_field`来指定获取账号名和账号密码的字段名称；
 `AuthTokenNode`在`run()`运行后默认返回一个长度为40的`token`字符串。
+
+# Auto-generated code
+
+## 编辑 meta-config
+
+### name
+meta_config的名称，唯一标识（推荐和文件名相同）。
+    
+    {                           
+      "name": "meta_config_name"
+    }
+
+### type
+前端组件类型。
+    
+    {                           
+      "type": “table"           
+    }
+
+### model
+model类的具体路径。
+
+    {                              
+      "model": “module.module.model”,
+    }
+
+### meta
+包含了model所有的字段信息及校验规则。
+
+    {                        
+      "meta": {              
+        "field_1": {         
+          "title": "title_1",
+          "type": {          
+            "field_type": {} 
+          }                  
+        }                
+      }                      
+    }  
+
+#### field_1
+展示的字段名称，并不代表model中原始的字段名称。
+
+#### title_1
+字段的名称，用于前端展示。
+
+#### field_type
+字段的类型，目前支持string、integer、float、model_object。
+
+    {                        
+      "meta": {              
+        "field_1": {         
+          "title": "title_1",
+          "type": {          
+            "string": {
+              "required": true, # 必须接受此参数
+              "read_only"：false， # 只读
+              "write_only"：true，# 只写
+              "min_length": 10, # 字符串最小的长度
+              "max_length": 50, # 字符串最大的长度 
+              "source": "field_2" # model中原始的字段名称
+            } 
+          }                  
+        }                
+      }                      
+    }  
+
+##### model_object
+特殊的字段类型，不同于string、integer、float等字段类型，其本身包含另一个meta_config的信息。
+
+    "field": {
+      "title": "title",
+      "type": {
+        "model_object": {
+          "handler": "create", # 指定此model字段在进行处理时的处理类型，包括create、update、retrieve、delete、custom
+          "config_path": "/demo.json", # meta_comfig文件的绝对路径
+          "required": false,
+          "request": [
+            "field_1",
+            "field_2"
+          ],
+          "response": [
+            "field_1",
+            "field_2"
+          ],
+          "index_key": "index_field" # 关联的键，用于在此从属model字段中查询与主model相关联的记录
+        }
+      }
+    }
+
+### api
+接口的定义。
+
+    "meta_name/<index>/": { # url，index为位置参数
+      "update": { # 接口类型
+        "index": "index", # 指定位置参数的名称
+        "name": "update_meta_name", # 接口的名称
+        "http_method": "patch", # 接口的请求方法
+        "page_size": 20, # 分页的页面大小
+        "page_query_param": "page", # 分页参数的名称
+        "response_index_key": "meta_names", # 分页之后，键的名称
+        "request": [ # 接口需要接收的字段，与meta中的字段对应
+          "field_1"
+        ],
+        "response": [ # 接口需要返回的字段，与meta中的字段对应
+          "field_1",
+          "field_2"
+        ],
+        "debug": false # 是否输出debug信息，默认为true
+      },
+      "delete": {
+        "index": "index",
+        "name": "delete_meta_name",
+        "http_method": "delete",
+        "request": [],
+        "response": []
+      }
+    }
+
+#### custom type for api
+除了create、update、retrieve、delete四种系统提供的基本的数据处理引擎，你还可以进行自定义引擎的配置。
+此时不需要指定response参数。
+
+    "custom/": {
+      "custom": {
+        "name": "custom_1",
+        "flow": "flows.flow_1", # 指定自定义流的位置
+        "http_method": "post",
+        "request": [
+          "field_1",
+          "field_2"
+        ]
+      }
+    }
+
+详解：自定义流运行之前系统会根据request中的参数先进行数据校验，
+之后将validate的_data及原始的request传给自定义的flow
+
+## 配置meta_config
+将meta_config文件与django结合，以达到自动生成项目的效果。
+
+### 编写JSON文件
+将所有的meta_config统一存放到项目的某一文件夹下。
+
+    demo
+    |_ automation
+      |_ meta_1.json 
+      |_ ...
+      |_ meta_n.json
+
+### 配置url
+在django项目的主urls.py文件中增加一条路由
+
+    from django.contrib import admin
+    from django.urls import path, include
+    from arkfbp.common.automation.core import MetaConfigs
+    
+    meta_dir = '/demo/automation'
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('arkfbp-admin/', include(MetaConfigs(meta_dir).get_urls()))
+    ]
+
+### 运行项目
+    
+    python manage.py runserver
