@@ -80,7 +80,7 @@ class Executer:
         if isinstance(flow, ViewFlow):
             http_method = kwargs.get('http_method')
             content_type = kwargs.get('content_type', 'application/json')
-            header = kwargs.get('header')
+            header = kwargs.get('header', {})
             if not http_method:
                 raise Exception('Lack of parameter: http_method')
             if header:
@@ -99,7 +99,7 @@ class Executer:
             else:
                 raise Exception('Invalid parameter: http_method')
 
-        cls.start_flow(flow, request, *args, **kwargs)
+        return cls.start_flow(flow, request, *args, **kwargs)
 
     @classmethod
     def start_testflows(cls, top_dir):
@@ -126,7 +126,7 @@ class Executer:
                 print(path)
                 clz = importlib.import_module(path)
                 flow = clz.Main()
-                sys.stdout.write(cls.start_testflow(flow, inputs={}, http_method='get') + '\n')
+                print(cls.start_testflow(flow, inputs={}, http_method='get'))
             # pylint: disable=broad-except
             except Exception as exception:
                 sys.stdout.write(exception.__str__())
@@ -148,7 +148,7 @@ class Executer:
             node.init(*args, **kwargs)
             node.id = graph_node.id if graph_node else node.__class__.__name__
             node.state = flow.state
-            node.inputs = flow.outputs
+            node.inputs = kwargs.get('inputs', None) or flow.outputs
 
         if flow.valid_status():
             node.initialized(*args, **kwargs)
