@@ -4,7 +4,7 @@ siteapi flow
 from arkfbp.flow import ViewFlow
 from arkfbp.node import StartNode, StopNode
 
-from ..siteapi.nodes.serializer import SerializerCore
+from ..admin.nodes.serializer import SerializerCore
 
 
 class Main(ViewFlow):

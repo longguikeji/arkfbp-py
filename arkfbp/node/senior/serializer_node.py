@@ -3,14 +3,16 @@ Serializer Node
 """
 import copy
 # pylint: disable=no-name-in-module
-from collections import MutableMapping, OrderedDict, Iterable
+from collections import MutableMapping, OrderedDict
 from importlib import import_module
 
-from .field_node import FieldNode
+from django.db import models
+
+from .field_node import FieldNode, SkipField
 
 # SerializerNode metadata
 from ...executer import Executer
-from ...utils.util import json_load
+from ...utils.util import get_class_from_path
 
 
 class SerializerNodeMetaclass(type):
@@ -60,42 +62,30 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.instance = None
+        self.instance = kwargs.get('instance', None)
 
     def run(self, *args, **kwargs):
         """
         run node.
         """
+
         # serializer node以self.inputs作为输入，运行其所包含的field_nodes和serializer_nodes，
         # 其中每个子node的inputs都是初始的inputs，而不是每个前驱节点的outputs。
         # 当捕捉到flow状态异常时，将会在此终止流的执行。如果检测顺利，最终返回的还是self.inputs
         error_dict = {}
         inputs = self.inputs
+        # 判断状态是否正常
+        if not self.flow.valid_status():
+            error_dict.update(inputs)
         # pylint: disable=import-outside-toplevel
-        from ...common.automation.siteapi.nodes.serializer import get_field_config
 
         for field, node in self.fields.items():
-            # pylint: disable=no-member
-            field_type, field_detail = get_field_config(field, self.config)
-            if field_type == 'model_object':
-                _inputs = inputs[field] if isinstance(inputs, dict) else inputs.ds[field]
-                outputs = Executer.start_node(node, self.flow, inputs=_inputs)
-                if not self.flow.valid_status():
-                    error_dict.update(outputs)
-                    continue
-                # self.validated_data.update({node.source_field(field): node.validated_data})
-            else:
-                outputs = Executer.start_node(node, self.flow, inputs=inputs)
-                if outputs:
-                    error_dict.update(outputs)
-                    continue
-                model_attr = field_detail.get('model_attr', None)
-                if model_attr:
-                    # pylint: disable=protected-access
-                    value = self.parent.model._default_manager.get(**{model_attr: node.show_value})
-                else:
-                    value = node.show_value
-                self.validated_data.update({node.source_field(field): value})
+            outputs = Executer.start_node(node, self.flow, inputs=inputs)
+            if outputs:
+                error_dict.update(outputs)
+                continue
+            print('node.show_value is', node.show_value)
+            self.validated_data.update({node.source_field(field): node.show_value})
 
         return self.flow.shutdown(error_dict, response_status=400) if error_dict else self.inputs
 
@@ -108,7 +98,6 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
         for key, value in self.get_fields().items():
             fields[key] = value
         # pylint: disable=attribute-defined-outside-init
-        self._fields = fields
         return fields
 
     @property
@@ -116,7 +105,7 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
         """
         writable fields.
         """
-        for field in self._fields.values():
+        for field in self.fields.values():
             if not field.read_only:
                 yield field
 
@@ -125,7 +114,7 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
         """
         readable fields.
         """
-        for field in self._fields.values():
+        for field in self.fields.values():
             if not field.write_only:
                 yield field
 
@@ -156,65 +145,66 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
         """
         self._validated_data = data
 
+    # pylint: disable=attribute-defined-outside-init
     @property
     def data(self):
         """
         instance -> dict.
         """
-        if not all((hasattr(self, 'instance'), self.instance)):
-            return {}
+        if not hasattr(self, '_data'):
+            if self.instance is not None:
+                self._data = self.to_representation(self.instance)
+            else:
+                self._data = self.to_representation(self.validated_data)
+        return self._data
 
-        if isinstance(self.instance, Iterable):
-            objects = [self.to_representation(item) for item in list(self.instance)]
-            # pylint: disable=no-member
-            rsp_idx_key = self.api_detail.get('response_index_key', None)
-            return {rsp_idx_key or f'{self.flow.config["name"]}_objects': objects}
-
-        return self.to_representation(self.instance)
-
-    # pylint: disable=no-member, import-outside-toplevel
+    # pylint: disable=no-member
     def to_representation(self, instance):
         """
         execute instance -> dict.
+        instance might be a dict or object.
         """
-        data = {}
-        from ...common.automation.siteapi.nodes.serializer import SerializerCore, get_field_config
-
-        for field in self.api_detail['response']:
-            field_node = self._fields.get(field) if hasattr(self, '_fields') else self.fields.get(field)
-            field_type, field_detail = get_field_config(field, self.config)
-            if field_type == 'model_object':
-                if field_node and not field_node.write_only:
-                    # 存在可用的field node
-                    query_set = field_node.retrieve(**{field_detail['index_key']: instance.pk})
-                    field_node.instance = query_set[0] if query_set else {}
-                    value = field_node.data
+        ret = OrderedDict()
+        fields = self._readable_fields
+        for field in fields:
+            try:
+                if isinstance(field, SerializerNode):
+                    ret[field.field_name] = field.to_representation(instance)
                 else:
-                    # 新建可用的field node
-                    config = json_load(field_detail['config_path'])
-                    field_node = SerializerCore().get_serializer_node(field_detail, config)
-                    query_set = field_node.retrieve(**{field_detail['index_key']: instance.pk})
-                    field_node.instance = query_set[0] if query_set else {}
-                    value = field_node.data
-                data.update({field: value})
+                    attribute = field.get_attribute(instance)
+                    ret[field.field_name] = field.to_representation(attribute)
+            except SkipField:
                 continue
-            # 有现成的field node
-            if field_node and not field_node.write_only:
-                value = getattr(instance, field_node.source_field(field))
-                # 用来判断一个外键的属性，并取得其指定的属性值 TODO
-                model_attr = field_detail.get('model_attr', None)
-                if model_attr:
-                    value = getattr(value, model_attr)
-            else:
-                # 没有现成的field node，新建
-                field_node = SerializerCore().get_field_node(field, self.config)
-                value = getattr(instance, field_node.source_field(field))
-                # 用来判断一个外键的属性，并取得其指定的属性值
-                model_attr = field_detail.get('model_attr', None)
-                if model_attr:
-                    value = getattr(value, model_attr)
-            data.update({field: value})
-        return data
+        return ret
+
+
+# ListSerializerNode metadata
+_LIST_SERIALIZER_NODE_NAME = 'list_serializer'
+_LIST_SERIALIZER_NODE_KIND = 'list_serializer'
+
+
+class ListSerializerNode(SerializerNode):
+    """
+    List serializer node.
+    """
+    name = _LIST_SERIALIZER_NODE_NAME
+    kind = _LIST_SERIALIZER_NODE_KIND
+    child = None
+    many = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.child = kwargs.pop('child', copy.deepcopy(self.child))
+        assert self.child is not None, '`child` is a required argument in ListSerializerNode.'
+
+    def to_representation(self, instance):
+        """
+        List of object instances -> List of dicts of primitive data types.
+        """
+        # Dealing with nested relationships, data can be a Manager,
+        # so, first get a queryset from the Manager if needed
+        iterable = instance.all() if isinstance(instance, models.Manager) else instance
+        return [self.child.to_representation(item)['item'] for item in iterable]
 
 
 # ModelSerializerNode metadata
@@ -228,8 +218,7 @@ class ModelSerializerNode(SerializerNode):
     """
     name = _MODEL_SERIALIZER_NODE_NAME
     kind = _MODEL_SERIALIZER_NODE_KIND
-    # import path of the model
-    model_path = None
+    model = None
 
     def create(self, **data):
         """
@@ -265,25 +254,6 @@ class ModelSerializerNode(SerializerNode):
         self.instance = query_set
         return query_set
 
-    @property
-    def model(self):
-        """
-        serializer node model.
-        """
-        try:
-            model = self.get_model()
-            return model
-        except NotImplementedError as exception:
-            if not self.model_path:
-                raise Exception('Valid model-import-path Not exists!') from exception
-            _list = self.model_path.split('.')
-            model = getattr(import_module('.'.join(_list[:-2])), _list[-1])
-            return model
-
-    def get_model(self):
-        """custom get model by user"""
-        raise NotImplementedError
-
     def get_object(self, **kwargs):
         """
         get some objects.
@@ -291,22 +261,60 @@ class ModelSerializerNode(SerializerNode):
         obj = self.model.objects.get(**kwargs)
         return obj
 
-    # pylint: disable=too-many-locals, import-outside-toplevel, no-member, broad-except, unused-argument
-    def handle(self, handler, api_detail, *args, **kwargs):
+
+# ModelSerializerNode metadata
+_AUTO_MODEL_SERIALIZER_NODE_NAME = 'auto_model_serializer'
+_AUTO_MODEL_SERIALIZER_NODE_KIND = 'auto_model_serializer'
+
+
+class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
+    """
+    Auto Model SerializerNode
+    """
+    name = _AUTO_MODEL_SERIALIZER_NODE_NAME
+    kind = _AUTO_MODEL_SERIALIZER_NODE_KIND
+
+    # pylint: disable=too-many-locals, import-outside-toplevel, no-member,
+    # pylint: disable=broad-except, unused-argument, too-many-branches, too-many-statements
+    def handle(self, api_detail, model_mapping, *args, **kwargs):
         """
         handle model.
         """
-        index = api_detail.get('index', None)
-        index_value = kwargs.get(index, None)
-        from ...common.automation.siteapi.nodes.serializer import get_field_config
-        fields = api_detail.get('request', [])
-        for field in fields:
-            field_type, field_detail = get_field_config(field, self.config)
-            if field_type == 'model_object':
-                serializer_node = self._fields.get(field)
-                ret = serializer_node.handle(field_detail['handler'], serializer_node.api_detail)
+        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model
+
+        index_value = None
+        for key, value in api_detail.get('index', {}).items():
+            # TODO 校验index value的合法性
+            # _, source_path, _, _ = import_field_config(key, value, self.flow.config)
+            path = value if isinstance(value, str) else value.get('src')
+            index = path.split('.')[-1]
+            index_value = kwargs.get(key, None)
+            break
+
+        handler = api_detail.get('type', None)
+        if handler == 'create':
+            results = {}
+            for model, field in model_mapping.items():
+                self.model = model
+                # pylint: disable=consider-using-dict-comprehension
+                collect_data = dict([(item, self.validated_data.get(item, None)) for item in field])
+                print('collect_data is', collect_data)
+                results[model] = self.create(**collect_data)
+            print('results is', results)
+            # TODO 通过response参数新建一个serializer，将相关的参数与results结合后返回特定格式的数据
+            self.instance = None
+            for key, value in results.items():
+                node = SerializerCore.get_serializer_node(api_detail['response'], self.flow.config, instance=value)
+                return node.data
+
+            return self.data
 
         if handler == 'delete' and index_value is not None:
+            for key, value in api_detail['index'].items():
+                model = search_available_model(key, value, self.flow.config)
+                if model:
+                    self.model = model
+                    break
             try:
                 instance = self.get_object(**{index: index_value})
             except Exception:
@@ -315,6 +323,11 @@ class ModelSerializerNode(SerializerNode):
             return {'delete': 'success'}
 
         if handler == 'update' and index_value is not None:
+            for key, value in api_detail['request'].items():
+                model = search_available_model(key, value, self.flow.config)
+                if model:
+                    self.model = model
+                    break
             try:
                 instance = self.get_object(**{index: index_value})
             except Exception:
@@ -323,23 +336,51 @@ class ModelSerializerNode(SerializerNode):
             return self.data
 
         if handler == 'retrieve':
-            page = self.inputs.ds.pop('page', None) or 1
-            page_size = self.inputs.ds.pop('page_size', None) or api_detail.get('page_size', None)
+
+            for key, value in api_detail['response'].items():
+                model = search_available_model(key, value, self.flow.config)
+                if model:
+                    self.model = model
+                    break
+
+            pagination_config = api_detail.get('pagination')
+            pagination = pagination_config.get('enabled', False) if pagination_config else False
+            if pagination:
+                page_query_param = pagination_config.get('page_query_param', 'page')
+                page_size_query_param = pagination_config.get('page_size_query_param', 'page_size')
+                page = self.inputs.ds.pop(page_query_param, 1)
+                page_size = self.inputs.ds.pop(page_size_query_param, 20)
+
             query_set = self.retrieve(**self.inputs.ds)
+            node = SerializerCore.get_serializer_node(api_detail['response'], self.flow.config, instance=query_set)
 
-            def handle(queryset):
-                self.instance = queryset
-                return self.data
+            if pagination:
+                from .. import PaginationNode
+                count_param = pagination_config.get('count_param')
+                results_param = pagination_config.get('results_param')
+                next_param = pagination_config.get('next_param')
+                previous_param = pagination_config.get('previous_param')
+                paginated_response = pagination_config.get('paginated_response')
+                if paginated_response:
+                    paginated_response = get_class_from_path(paginated_response)
+                pagination_node = PaginationNode()
+                ret = Executer.start_node(pagination_node,
+                                          self.flow,
+                                          page_size=page_size,
+                                          page=page,
+                                          inputs=query_set,
+                                          request=self.inputs,
+                                          count_param=count_param,
+                                          results_param=results_param,
+                                          next_param=next_param,
+                                          previous_param=previous_param,
+                                          page_query_param=page_query_param,
+                                          page_size_query_param=page_size_query_param,
+                                          serializer_node=node,
+                                          paginated_response=paginated_response)
+                return ret
 
-            from .. import PaginationNode
-            ret = Executer.start_node(PaginationNode(),
-                                      self.flow,
-                                      page_size=page_size,
-                                      page=page,
-                                      handler=handle,
-                                      inputs=query_set,
-                                      request=self.inputs)
-            return ret
+            return node.data
 
         if handler == 'custom':
             handler_path = api_detail['flow']
