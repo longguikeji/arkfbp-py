@@ -1,9 +1,40 @@
 """
 Field Node.
 """
+from typing import Mapping
+
+from django.core.exceptions import ObjectDoesNotExist
+
 from ..function_node import FunctionNode
 from ...utils.exceptions import ValidationError
 from ...utils.formatting import LazyFormat
+
+
+class SkipField(Exception):
+    """
+    SkipField Exception
+    """
+
+
+def get_attribute(instance, attrs):
+    """
+    Similar to Python's built in `getattr(instance, attr)`,
+    but takes a list of nested attributes, instead of a single attribute.
+
+    Also accepts either attribute lookup on objects or dictionary lookups.
+    """
+    for attr in attrs:
+        try:
+            # pylint: disable=isinstance-second-argument-not-valid-type
+            if isinstance(instance, Mapping):
+                instance = instance[attr]
+            else:
+                instance = getattr(instance, attr)
+        except ObjectDoesNotExist:
+            return None
+
+    return instance
+
 
 NOT_READ_ONLY_WRITE_ONLY = 'May not set both `read_only` and `write_only`'
 NOT_READ_ONLY_REQUIRED = 'May not set both `read_only` and `required`'
@@ -104,11 +135,7 @@ class FieldNode(FunctionNode):
 
         # self.source_attrs is a list of attributes that need to be looked up
         # when serializing the instance, or populating the validated data.
-        # TODO 指定source为其他model中的一个字段: github_user.user.id
-        # if self.source == '*':
-        #     self.source_attrs = []
-        # else:
-        #     self.source_attrs = self.source.split('.')
+        self.source_attrs = self.source.split('.')
 
     def run(self, *args, **kwargs):
         """
@@ -137,7 +164,7 @@ class FieldNode(FunctionNode):
         if isinstance(self.inputs, dict):
             ret = self.inputs.get(self.field_name, None)
         else:
-            ret = self.inputs.get(self.field_name, None)
+            ret = self.inputs.ds.get(self.field_name, None)
         if ret is None and self.required:
             raise ValidationError({self.field_name: self.error_messages['required']})
 
@@ -174,6 +201,19 @@ class FieldNode(FunctionNode):
         """
         return {} if not error_list else {self.field_name: error_list}
 
+    def get_attribute(self, instance):
+        """
+        get attribute from instance.
+        """
+        try:
+            return get_attribute(instance, self.source_attrs)
+        except (KeyError, AttributeError):
+            if self.allow_null:
+                return None
+            if not self.required:
+                # pylint: disable=raise-missing-from
+                raise SkipField()
+
 
 # CharFieldNode metadata
 _CHAR_FIELDNODE_NAME = 'char_field'
@@ -205,6 +245,13 @@ class CharFieldNode(FieldNode):
         self.allow_blank = allow_blank
         self.trim_whitespace = trim_whitespace
         self.validators.append(self.allow_blank_validator)
+
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        return str(value)
 
     def max_length_validator(self, value):
         """
@@ -259,6 +306,13 @@ class IntegerFieldNode(FieldNode):
             self.min_value = min_value
             self.validators.append(self.min_value_validator)
 
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        return int(value)
+
     def max_value_validator(self, value):
         """
         max length validator.
@@ -303,6 +357,13 @@ class FloatFieldNode(FieldNode):
             self.min_value = min_value
             self.validators.append(self.min_value_validator)
 
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        return float(value)
+
     def max_value_validator(self, value):
         """
         max length validator.
@@ -318,3 +379,28 @@ class FloatFieldNode(FieldNode):
         if float(value) < self.min_value:
             message = LazyFormat(self.error_messages['min_value'], min_value=self.min_value, show_value=value)
             raise ValidationError({self.field_name: message})
+
+
+# AnyFieldNode metadata
+_ANY_FIELDNODE_NAME = 'any_field'
+_ANY_FIELDNODE_KIND = 'any_field'
+
+
+class AnyFieldNode(FieldNode):
+    """
+    any field node.
+    """
+    name = _ANY_FIELDNODE_NAME
+    kind = _ANY_FIELDNODE_KIND
+
+    default_error_messages = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        return value

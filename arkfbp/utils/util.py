@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring
 import json
+from importlib import import_module
 
 
 def list_duplicate_removal(raw_list):
@@ -19,3 +20,14 @@ def json_load(file):
         data = json.load(_file)
 
     return data
+
+
+def get_class_from_path(path):
+    """
+    path => models.models.user.User
+    return User
+    """
+    path_list = path.split('.')
+    module = import_module('.'.join(path_list[:-1]))
+    cls = getattr(module, path_list[-1])
+    return cls
