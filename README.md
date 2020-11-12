@@ -619,15 +619,20 @@ meta_config的名称，唯一标识（推荐和文件名相同）。
       "type": “table"           
     }
 
-### model
-model类的具体路径。
+### module
+model类及meta文件的具体路径。
 
-    {                              
-      "model": “module.module.model”,
-    }
+      "module": {
+        "user": {
+          "model": "arkid_meta.models.user.User"
+        },
+        "util": {
+          "meta": "automation.util"
+        }
+      }
 
 ### meta
-包含了model所有的字段信息及校验规则。
+包含了model所有的字段信息及校验规则，书写方式分为module导入，或者自定义。
 
     {                        
       "meta": {              
@@ -647,67 +652,77 @@ model类的具体路径。
 字段的名称，用于前端展示。
 
 #### field_type
-字段的类型，目前支持string、integer、float、model_object。
+字段的类型，目前支持string、integer、float、object、array。
 
     {                        
       "meta": {              
         "field_1": {         
           "title": "title_1",
+          "required": true, # 必须接受此参数
           "type": {          
             "string": {
-              "required": true, # 必须接受此参数
               "read_only"：false， # 只读
               "write_only"：true，# 只写
               "min_length": 10, # 字符串最小的长度
               "max_length": 50, # 字符串最大的长度 
-              "source": "field_2" # model中原始的字段名称
             } 
           }                  
         }                
       }                      
     }  
 
-##### model_object
-特殊的字段类型，不同于string、integer、float等字段类型，其本身包含另一个meta_config的信息。
+##### object field type
 
     "field": {
       "title": "title",
       "type": {
-        "model_object": {
-          "handler": "create", # 指定此model字段在进行处理时的处理类型，包括create、update、retrieve、delete、custom
-          "config_path": "/demo.json", # meta_comfig文件的绝对路径
-          "required": false,
-          "request": [
-            "field_1",
-            "field_2"
-          ],
-          "response": [
-            "field_1",
-            "field_2"
-          ],
-          "index_key": "index_field" # 关联的键，用于在此从属model字段中查询与主model相关联的记录
+        "object": {
+            "field_1": "field_1",
+            "field_2": "field_2",
+            "field_3": "field_3",
+          }
+      }
+    }
+
+#### array object type
+
+    "field": {
+      "title": "查询结果列表",
+      "type": {
+        "array": {
+          "array_item": "field_1"
         }
       }
     }
 
 ### api
-接口的定义。
+接口定义。
 
     "meta_name/<index>/": { # url，index为位置参数
-      "update": { # 接口类型
-        "index": "index", # 指定位置参数的名称
+      "get": { # 接口的请求方法
         "name": "update_meta_name", # 接口的名称
-        "http_method": "patch", # 接口的请求方法
-        "page_size": 20, # 分页的页面大小
-        "page_query_param": "page", # 分页参数的名称
-        "response_index_key": "meta_names", # 分页之后，键的名称
-        "request": [ # 接口需要接收的字段，与meta中的字段对应
-          "field_1"
-        ],
-        "response": [ # 接口需要返回的字段，与meta中的字段对应
-          "field_1",
-          "field_2"
-        ],
+        "type": "retrieve", # 接口的默认类型
+        "index": { # 位置参数的配置
+          "id": { # 位置参数名称
+          "src": "model_user.id" # 配置来源
+          }
+        },
+        "pagination": { # 分页配置
+          "enabled": true, # 是否启用
+          "page_size_query_param": "page_size", # 传参的key名称，页面大小
+          "page_query_param": "page", # 传参的key名称，页码
+          "count_param": "count", # 记录总数的名称
+          "results_param": "results", # 结果的名称
+          "next_param": "next", # 下一页的名称
+          "previous_param": "previous", # 上一页的名称
+          "paginated_response": "utils.custom_response" # 自定义分页response，需清楚具体pagination node的response实现
+        },
+        "request": {}, # 接口需要接收的字段
+        "response": { # 接口需要返回的字段
+          "data": "items", # 表示本地meta中的配置
+          "error_code": "util.error_code", # 表示从module导入的配置
+          "error_message": "util.error_message" # 表示从module导入的配置
+        },
         "debug": false # 是否输出debug信息，默认为true
       },
       "delete": {
@@ -724,14 +739,11 @@ model类的具体路径。
 此时不需要指定response参数。
 
     "custom/": {
-      "custom": {
+      "post": {
         "name": "custom_1",
+        "type": "custom",
         "flow": "flows.flow_1", # 指定自定义流的位置
-        "http_method": "post",
-        "request": [
-          "field_1",
-          "field_2"
-        ]
+        "request": {}, # 接口需要接收的字段
       }
     }
 
