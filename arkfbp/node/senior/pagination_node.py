@@ -52,7 +52,7 @@ class PaginationNode(FunctionNode):
         page_size = self.get_page_size(page_size=kwargs.get('page_size', None))
         if not page_size:
             return None
-        paginator = self.paginator_class(self.inputs, page_size)
+        paginator = self.paginator_class(kwargs.get('inputs'), page_size)
         self.page_number = kwargs.get('page', 1)
         self.page_size = page_size
         # pylint: disable=attribute-defined-outside-init
