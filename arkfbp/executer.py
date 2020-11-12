@@ -148,7 +148,7 @@ class Executer:
             node.init(*args, **kwargs)
             node.id = graph_node.id if graph_node else node.__class__.__name__
             node.state = flow.state
-            node.inputs = kwargs.get('inputs', None) or flow.outputs
+            node.inputs = kwargs.get('inputs') or flow.outputs
 
         if flow.valid_status():
             node.initialized(*args, **kwargs)
