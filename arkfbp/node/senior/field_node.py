@@ -1,9 +1,15 @@
 """
 Field Node.
 """
+# pylint: disable=too-many-lines
+import datetime
 from typing import Mapping
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
+from django.utils.timezone import utc
+from pytz import InvalidTimeError
 
 from ..function_node import FunctionNode
 from ...utils.exceptions import ValidationError
@@ -381,6 +387,153 @@ class FloatFieldNode(FieldNode):
             raise ValidationError({self.field_name: message})
 
 
+# UUIDFieldNode metadata
+_UUID_FIELDNODE_NAME = 'uuid_field'
+_UUID_FIELDNODE_KIND = 'uuid_field'
+
+
+class UUIDFieldNode(FieldNode):
+    """
+    uuid field node.
+    """
+    name = _UUID_FIELDNODE_NAME
+    kind = _UUID_FIELDNODE_KIND
+    valid_formats = ('hex_verbose', 'hex', 'int', 'urn')
+
+    default_error_messages = {
+        'invalid': 'Must be a valid UUID.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        self.uuid_format = kwargs.pop('format', 'hex_verbose')
+        if self.uuid_format not in self.valid_formats:
+            raise ValueError('Invalid format for uuid representation. '
+                             'Must be one of "{}"'.format('", "'.join(self.valid_formats)))
+        super().__init__(*args, **kwargs)
+
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        if self.uuid_format == 'hex_verbose':
+            return str(value)
+        return getattr(value, self.uuid_format)
+
+
+# BooleanFieldNode metadata
+_BOOLEAN_FIELDNODE_NAME = 'boolean_field'
+_BOOLEAN_FIELDNODE_KIND = 'boolean_field'
+
+
+class BooleanFieldNode(FieldNode):
+    """
+    boolean field node.
+    """
+    name = _BOOLEAN_FIELDNODE_NAME
+    kind = _BOOLEAN_FIELDNODE_KIND
+    TRUE_VALUES = {'t', 'T', 'y', 'Y', 'yes', 'YES', 'true', 'True', 'TRUE', 'on', 'On', 'ON', '1', 1, True}
+    FALSE_VALUES = {'f', 'F', 'n', 'N', 'no', 'NO', 'false', 'False', 'FALSE', 'off', 'Off', 'OFF', '0', 0, 0.0, False}
+    NULL_VALUES = {'null', 'Null', 'NULL', '', None}
+    default_error_messages = {
+        'invalid': 'Must be a valid boolean.',
+    }
+
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        if value in self.TRUE_VALUES:
+            return True
+        if value in self.FALSE_VALUES:
+            return False
+        if value in self.NULL_VALUES and self.allow_null:
+            return None
+        return bool(value)
+
+
+# DateTimeFieldNode metadata
+_DATETIME_FIELDNODE_NAME = 'datetime_field'
+_DATETIME_FIELDNODE_KIND = 'datetime_field'
+
+
+class DateTimeFieldNode(FieldNode):
+    """
+    datetime field node.
+    """
+    default_error_messages = {
+        'invalid': 'Datetime has wrong format. Use one of these formats instead: {format}.',
+        'date': 'Expected a datetime but got a date.',
+        'make_aware': 'Invalid datetime for the timezone "{timezone}".',
+        'overflow': 'Datetime value out of range.'
+    }
+    datetime_parser = datetime.datetime.strptime
+
+    # pylint: disable=redefined-builtin
+    def __init__(self, *args, format=None, input_formats=None, default_timezone=None, **kwargs):
+        if format is not None:
+            self.format = format
+        if input_formats is not None:
+            self.input_formats = input_formats
+        if default_timezone is not None:
+            self.timezone = default_timezone
+        super().__init__(*args, **kwargs)
+
+    # pylint: disable=raise-missing-from
+    def enforce_timezone(self, value):
+        """
+        When `self.default_timezone` is `None`, always return naive datetimes.
+        When `self.default_timezone` is not `None`, always return aware datetimes.
+        """
+        field_timezone = getattr(self, 'timezone', self.default_timezone())
+
+        if field_timezone is not None:
+            if timezone.is_aware(value):
+                try:
+                    return value.astimezone(field_timezone)
+                except OverflowError:
+                    raise ValidationError({self.field_name: self.error_messages['overflow']})
+
+            try:
+                return timezone.make_aware(value, field_timezone)
+            except InvalidTimeError:
+                message = LazyFormat(self.error_messages['make_aware'], timezone=field_timezone)
+                raise ValidationError({self.field_name: message})
+        elif (field_timezone is None) and timezone.is_aware(value):
+            return timezone.make_naive(value, utc)
+        return value
+
+    # pylint: disable=no-self-use
+    def default_timezone(self):
+        """
+        default timezone.
+        """
+        return timezone.get_current_timezone() if settings.USE_TZ else None
+
+    # pylint: disable=no-self-use
+    def to_representation(self, value):
+        """
+        to representation value
+        """
+        if not value:
+            return None
+
+        output_format = getattr(self, 'format', None)
+
+        if output_format is None or isinstance(value, str):
+            return value
+
+        value = self.enforce_timezone(value)
+
+        if output_format.lower() == 'iso-8601':
+            value = value.isoformat()
+            if value.endswith('+00:00'):
+                value = value[:-6] + 'Z'
+            return value
+        return value.strftime(output_format)
+
+
 # AnyFieldNode metadata
 _ANY_FIELDNODE_NAME = 'any_field'
 _ANY_FIELDNODE_KIND = 'any_field'
@@ -394,9 +547,6 @@ class AnyFieldNode(FieldNode):
     kind = _ANY_FIELDNODE_KIND
 
     default_error_messages = {}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     # pylint: disable=no-self-use
     def to_representation(self, value):

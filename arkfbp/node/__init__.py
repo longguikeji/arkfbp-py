@@ -10,5 +10,6 @@ from .stop_node import StopNode
 from .test_node import TestNode
 from .senior.auth_node import AuthTokenNode
 from .senior.serializer_node import (SerializerNode, ModelSerializerNode, AutoModelSerializerNode, ListSerializerNode)
-from .senior.field_node import (FieldNode, CharFieldNode, IntegerFieldNode, FloatFieldNode, AnyFieldNode)
+from .senior.field_node import (FieldNode, CharFieldNode, IntegerFieldNode, FloatFieldNode, AnyFieldNode, UUIDFieldNode,
+                                BooleanFieldNode, DateTimeFieldNode)
 from .senior.pagination_node import PaginationNode

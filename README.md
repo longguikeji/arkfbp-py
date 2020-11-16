@@ -734,6 +734,24 @@ model类及meta文件的具体路径。
       }
     }
 
+#### pagination response
+若想自定义分页的数据结构，你需要用到.pagination内置用法来重构响应的数据结构。
+
+    {"meta":    
+      "data": {
+        "required": false,
+        "type": {
+          "object": {
+            "total": ".pagination.count",
+            "page": ".pagination.page",
+            "page_size": ".pagination.page_size",
+            "items": "items"
+          }
+        }
+      }
+    }
+    
+在开启系统默认
 #### custom type for api
 除了create、update、retrieve、delete四种系统提供的基本的数据处理引擎，你还可以进行自定义引擎的配置。
 此时不需要指定response参数。

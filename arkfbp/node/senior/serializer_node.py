@@ -280,7 +280,7 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
         """
         handle model.
         """
-        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model
+        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model, reset_response
 
         index_value = None
         for key, value in api_detail.get('index', {}).items():
@@ -346,8 +346,13 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
             pagination_config = api_detail.get('pagination')
             pagination = pagination_config.get('enabled', False) if pagination_config else False
             if pagination:
-                page_query_param = pagination_config.get('page_query_param', 'page')
-                page_size_query_param = pagination_config.get('page_size_query_param', 'page_size')
+                page_query_param = 'page'
+                page_size_query_param = 'page_size'
+                for key, detail in api_detail['request'].items():
+                    if detail == '.pagination.page':
+                        page_query_param = key
+                    if detail == '.pagination.page_size':
+                        page_size_query_param = key
                 page = self.inputs.ds.pop(page_query_param, 1)
                 page_size = self.inputs.ds.pop(page_size_query_param, 20)
 
@@ -356,10 +361,10 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
 
             if pagination:
                 from .. import PaginationNode
-                count_param = pagination_config.get('count_param')
-                results_param = pagination_config.get('results_param')
-                next_param = pagination_config.get('next_param')
-                previous_param = pagination_config.get('previous_param')
+                count_param = pagination_config.get('count_param', 'count')
+                results_param = pagination_config.get('results_param', 'results')
+                next_param = pagination_config.get('next_param', 'next')
+                previous_param = pagination_config.get('previous_param', 'previous')
                 paginated_response = pagination_config.get('paginated_response')
                 if paginated_response:
                     paginated_response = get_class_from_path(paginated_response)
@@ -378,6 +383,9 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
                                           page_size_query_param=page_size_query_param,
                                           serializer_node=node,
                                           paginated_response=paginated_response)
+                # 进行自定义重组数据结构
+                ret = reset_response('pagination', ret, api_detail['response'], self.flow.config)
+
                 return ret
 
             return node.data
