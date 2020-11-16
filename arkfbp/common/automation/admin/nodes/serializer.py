@@ -10,7 +10,7 @@ from django.db import models
 from arkfbp.executer import Executer
 # pylint: disable=line-too-long
 from arkfbp.node import (AutoModelSerializerNode, ListSerializerNode, FunctionNode, CharFieldNode, IntegerFieldNode,
-                         FloatFieldNode, AnyFieldNode)
+                         FloatFieldNode, AnyFieldNode, UUIDFieldNode, BooleanFieldNode, DateTimeFieldNode)
 from arkfbp.utils.util import json_load, get_class_from_path
 
 FIELD_MAPPING = {
@@ -19,7 +19,10 @@ FIELD_MAPPING = {
     'float': FloatFieldNode,
     'object': AutoModelSerializerNode,
     'array': ListSerializerNode,
-    'any': AnyFieldNode
+    'uuid': UUIDFieldNode,
+    'any': AnyFieldNode,
+    'boolean': BooleanFieldNode,
+    'datetime': DateTimeFieldNode,
 }
 
 API_TYPE_MAPPING = {
@@ -86,6 +89,8 @@ class SerializerCore(FunctionNode):
             #   field => username
             #   detail -> {"src":"user.username"}
             source, _, field_config, meta_config = import_field_config(field, detail, config)
+            if source == 'internal':
+                continue
             if source == 'meta' and 'object' in field_config['type'].keys():
                 node = cls.get_serializer_node(field_config['type']['object'],
                                                meta_config,
@@ -120,13 +125,15 @@ SERIALIZER_FIELD_MAPPING = {
     IntegerFieldNode,
     models.BigIntegerField:
     IntegerFieldNode,
-    # models.BooleanField: BooleanField,
+    models.BooleanField:
+    BooleanFieldNode,
     models.CharField:
     CharFieldNode,
     models.CommaSeparatedIntegerField:
     CharFieldNode,
     # models.DateField: DateField,
-    # models.DateTimeField: DateTimeField,
+    models.DateTimeField:
+    DateTimeFieldNode,
     # models.DecimalField: DecimalField,
     # models.EmailField: EmailField,
     # models.Field: ModelField,
@@ -146,6 +153,8 @@ SERIALIZER_FIELD_MAPPING = {
     IntegerFieldNode,
     models.TextField:
     CharFieldNode,
+    models.UUIDField:
+    UUIDFieldNode,
     # models.TimeField: TimeField,
     # models.URLField: URLField,
     # models.GenericIPAddressField: IPAddressField,
@@ -182,6 +191,9 @@ def import_field_config(field_name, field_detail, config):
     if isinstance(field_detail, dict):
         _field_detail = copy.deepcopy(field_detail)
         path = _field_detail.pop('src', field_name)
+    # 内部扩展的属性，不属于meta和model
+    if path.startswith('.'):
+        return 'internal', path, None, config
     # _path => ['user', 'username'] or ['username']
     _path = path.split('.')
     if len(_path) == 1:
@@ -201,9 +213,15 @@ def import_field_config(field_name, field_detail, config):
                 if 'model' in detail.keys():
                     cls = get_class_from_path(detail['model'])
                     for item in cls._meta.fields:
-                        if _field_name == item.attname:
+                        if _field_name == item.name:
                             field_type = SERIALIZER_FIELD_MAPPING[item.__class__]
-                            field_config = {'type': {FIELD_CONFIG_MAPPING[field_type]: {}}, **_field_detail}
+                            field_config = {
+                                'title': item.verbose_name,
+                                'type': {
+                                    FIELD_CONFIG_MAPPING[field_type]: {}
+                                },
+                                **_field_detail
+                            }
                             return 'model', detail['model'], field_config, config
                 if 'meta' in detail.keys():
                     file_path = os.getcwd()
@@ -264,6 +282,9 @@ def search_available_model(field_name, field_detail, config):
     {field_name: field_detail}
     """
     source, source_path, field_config, meta_config = import_field_config(field_name, field_detail, config)
+    if source == 'internal':
+        return None
+
     if source == 'model':
         model = get_class_from_path(source_path)
         return model
@@ -279,3 +300,30 @@ def search_available_model(field_name, field_detail, config):
             return search_available_model('item', value, meta_config)
 
     return None
+
+
+def reset_response(extend, response, show_fields, config):
+    """
+    reset response because of `.pagination` and so on.
+    """
+    if extend == 'pagination':
+        # response
+        #  {"page": 1, "page_size": 30, "count": "", "results":{}, "next": "", "previous": ""}
+        for key, detail in show_fields.items():
+            # 判断是否含有扩展的pagination字段，若存在将其加入ret中，并删除原始位置上的字段
+            source, _, field_config, _ = import_field_config(key, detail, config)
+            if source == 'internal':
+                # 进行重构 TODO
+                pass
+            if source == 'meta':
+                if 'object' in field_config['type']:
+                    for field, field_detail in field_config['type']['object'].items():
+                        if isinstance(field_detail, str) and field_detail.startswith('.pagination'):
+                            # 进行重构
+                            # param => count or page or next or previous or results
+                            param = field_detail.split('.')[-1]
+                            # print('param is', param)
+                            response['results'][key].update(**{field: response[param]})
+                            # response[param]['']
+                    return response['results']
+    return response
