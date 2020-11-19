@@ -3,7 +3,7 @@ siteapi flow
 """
 from arkfbp.flow import ViewFlow
 from arkfbp.node import StartNode, StopNode
-
+from .nodes.permission import PermissionCore
 from ..admin.nodes.serializer import SerializerCore
 
 
@@ -19,6 +19,12 @@ class Main(ViewFlow):
         return [{
             'cls': StartNode,
             'id': 'start',
+            'next': 'permission_core',
+            'x': None,
+            'y': None
+        }, {
+            'cls': PermissionCore,
+            'id': 'permission_core',
             'next': 'serializer_core',
             'x': None,
             'y': None

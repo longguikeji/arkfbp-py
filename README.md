@@ -750,7 +750,32 @@ model类及meta文件的具体路径。
         }
       }
     }
+
+#### permission flow
+在api描述中定义`permission`并引入`role`字段中定义的角色,
+其中`admin.flow`是用于校验权限的工作流，其输出值为布尔类型。
     
+    {
+      "role": {
+        "admin": {
+          "title": "管理员",
+          "flow": "flows.flow"
+        }
+      },
+      "api": {
+        "user/": {
+          "get": {
+            "name": "获取信息",
+            "type": "retrieve",
+            "request": {},
+            "response": {},
+            "debug": false,
+            "permission": ["admin"]
+          }
+        }
+      }
+    }
+
 在开启系统默认
 #### custom type for api
 除了create、update、retrieve、delete四种系统提供的基本的数据处理引擎，你还可以进行自定义引擎的配置。

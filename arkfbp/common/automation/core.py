@@ -57,7 +57,6 @@ class MetaConfig:
 
                 _cls_name += f'{detail["name"].capitalize()}'
                 url_name += f'-{detail["name"]}'
-
                 allow_http_method.append(_http_method)
                 detail.update(http_method=_http_method)
             # build the view class.

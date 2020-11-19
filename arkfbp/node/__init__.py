@@ -13,3 +13,4 @@ from .senior.serializer_node import (SerializerNode, ModelSerializerNode, AutoMo
 from .senior.field_node import (FieldNode, CharFieldNode, IntegerFieldNode, FloatFieldNode, AnyFieldNode, UUIDFieldNode,
                                 BooleanFieldNode, DateTimeFieldNode)
 from .senior.pagination_node import PaginationNode
+from .senior.permission_node import PermissionNode

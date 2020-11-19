@@ -19,6 +19,8 @@ class ViewFlow(Flow, View):
     allow_http_method = []
     response_type = JsonResponse
     response_status = 200
+    authentication_node_classes = []
+    permission_node_classes = []
 
     @classmethod
     def set_http_method(cls, method: list):
@@ -72,3 +74,16 @@ class ViewFlow(Flow, View):
             return self._response
 
         return self._response
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this flow requires.
+        """
+        return [permission() for permission in self.permission_node_classes]
+
+    def before_execute(self, inputs, *args, **kwargs):
+        """
+        check permission.
+        """
+        for node in self.get_permissions():
+            _ = Executer.start_node(node, self, *args, **kwargs)
