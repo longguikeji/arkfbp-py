@@ -4,7 +4,6 @@ Serializer Node
 import copy
 # pylint: disable=no-name-in-module
 from collections import MutableMapping, OrderedDict
-from importlib import import_module
 
 from django.db import models
 
@@ -12,7 +11,6 @@ from .field_node import FieldNode, SkipField
 
 # SerializerNode metadata
 from ...executer import Executer
-from ...utils.util import get_class_from_path
 
 
 class SerializerNodeMetaclass(type):
@@ -68,7 +66,6 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
         """
         run node.
         """
-
         # serializer node以self.inputs作为输入，运行其所包含的field_nodes和serializer_nodes，
         # 其中每个子node的inputs都是初始的inputs，而不是每个前驱节点的outputs。
         # 当捕捉到flow状态异常时，将会在此终止流的执行。如果检测顺利，最终返回的还是self.inputs
@@ -260,146 +257,6 @@ class ModelSerializerNode(SerializerNode):
         """
         obj = self.model.objects.get(**kwargs)
         return obj
-
-
-# ModelSerializerNode metadata
-_AUTO_MODEL_SERIALIZER_NODE_NAME = 'auto_model_serializer'
-_AUTO_MODEL_SERIALIZER_NODE_KIND = 'auto_model_serializer'
-
-
-class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
-    """
-    Auto Model SerializerNode
-    """
-    name = _AUTO_MODEL_SERIALIZER_NODE_NAME
-    kind = _AUTO_MODEL_SERIALIZER_NODE_KIND
-
-    # pylint: disable=too-many-locals, import-outside-toplevel, no-member,
-    # pylint: disable=broad-except, unused-argument, too-many-branches, too-many-statements
-    def handle(self, api_detail, model_mapping, *args, **kwargs):
-        """
-        handle model.
-        """
-        # pylint: disable=line-too-long
-        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model, reset_response, \
-            single_model_response
-
-        index_value = None
-        for key, value in api_detail.get('index', {}).items():
-            # TODO 校验index value的合法性
-            path = value if isinstance(value, str) else value.get('src')
-            index = path.split('.')[-1]
-            index_value = kwargs.get(key, None)
-            break
-
-        handler = api_detail.get('type', None)
-        if handler == 'create':
-            results = {}
-            for model, fields in model_mapping.items():
-                self.model = model
-                # pylint: disable=consider-using-dict-comprehension
-                collect_data = dict([(field[1], self.validated_data.get(field[1])) for field in fields])
-                results[model] = self.create(**collect_data)
-            response = {}
-            for model, instance in results.items():
-                struct, config = single_model_response(model, api_detail['response'], self.flow.config)
-                node = SerializerCore.get_serializer_node(struct, config, instance=instance)
-                response.update(**node.data)
-            return response
-
-        if handler == 'delete' and index_value is not None:
-            for key, value in api_detail['index'].items():
-                model = search_available_model(key, value, self.flow.config)
-                if model:
-                    self.model = model
-                    break
-            try:
-                instance = self.get_object(**{index: index_value})
-            except Exception:
-                return self.flow.shutdown({'error': 'No objects exists'}, response_status=400)
-            self.delete(instance)
-            return {'delete': 'success'}
-
-        if handler == 'update' and index_value is not None:
-            for key, value in api_detail['request'].items():
-                model = search_available_model(key, value, self.flow.config)
-                if model:
-                    self.model = model
-                    break
-            try:
-                instance = self.get_object(**{index: index_value})
-            except Exception:
-                return self.flow.shutdown({'error': 'No objects exists'}, response_status=400)
-            self.update(instance, **self.validated_data)
-            return self.data
-
-        if handler == 'retrieve':
-
-            for key, value in api_detail['response'].items():
-                model = search_available_model(key, value, self.flow.config)
-                if model:
-                    self.model = model
-                    break
-
-            pagination_config = api_detail.get('pagination')
-            pagination = pagination_config.get('enabled', False) if pagination_config else False
-            if pagination:
-                page_query_param = 'page'
-                page_size_query_param = 'page_size'
-                for key, detail in api_detail['request'].items():
-                    if detail == '.pagination.page':
-                        page_query_param = key
-                    if detail == '.pagination.page_size':
-                        page_size_query_param = key
-                page = self.inputs.ds.pop(page_query_param, 1)
-                page_size = self.inputs.ds.pop(page_size_query_param, 20)
-
-            query_set = self.retrieve(**self.inputs.ds)
-            node = SerializerCore.get_serializer_node(api_detail['response'], self.flow.config, instance=query_set)
-
-            if pagination:
-                from .. import PaginationNode
-                count_param = pagination_config.get('count_param', 'count')
-                results_param = pagination_config.get('results_param', 'results')
-                next_param = pagination_config.get('next_param', 'next')
-                previous_param = pagination_config.get('previous_param', 'previous')
-                paginated_response = pagination_config.get('paginated_response')
-                if paginated_response:
-                    paginated_response = get_class_from_path(paginated_response)
-                pagination_node = PaginationNode()
-                ret = Executer.start_node(pagination_node,
-                                          self.flow,
-                                          page_size=page_size,
-                                          page=page,
-                                          inputs=query_set,
-                                          request=self.inputs,
-                                          count_param=count_param,
-                                          results_param=results_param,
-                                          next_param=next_param,
-                                          previous_param=previous_param,
-                                          page_query_param=page_query_param,
-                                          page_size_query_param=page_size_query_param,
-                                          serializer_node=node,
-                                          paginated_response=paginated_response)
-                # 进行自定义重组数据结构
-                ret = reset_response('pagination', ret, api_detail['response'], self.flow.config)
-
-                return ret
-
-            return node.data
-
-        if handler == 'custom':
-            handler_path = api_detail['flow']
-            clz = import_module(f'{handler_path}.main')
-            flow = clz.Main()
-            ret = Executer.start_flow(
-                flow,
-                self.inputs,
-                validated_data=self.validated_data,
-            )
-            return ret
-
-        raise Exception('Invalid SerializerCore handler!')
 
 
 class BindingDict(MutableMapping):

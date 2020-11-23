@@ -3,7 +3,7 @@ Meta Config
 """
 import os
 
-from arkfbp.common.automation.admin.nodes.serializer import SERIALIZER_FIELD_MAPPING, FIELD_CONFIG_MAPPING
+from arkfbp.common.automation.admin.utils.modeling import MODEL_FIELD_MAPPING, REVERSE_META_FIELD_MAPPING
 from arkfbp.node import FunctionNode
 
 # Editor your node here.
@@ -69,8 +69,8 @@ class ConfigMeta(FunctionNode):
                 # module_model = {"name": meta_name, "type": "", "meta": {}, "api": {}}
                 cls = get_class_from_path(detail['model'])
                 for item in cls._meta.fields:
-                    field_type = SERIALIZER_FIELD_MAPPING[item.__class__]
-                    field_config = {'title': item.verbose_name, 'type': {FIELD_CONFIG_MAPPING[field_type]: {}}}
+                    field_type = MODEL_FIELD_MAPPING[item.__class__]
+                    field_config = {'title': item.verbose_name, 'type': {REVERSE_META_FIELD_MAPPING[field_type]: {}}}
                     module_model[meta_name]['meta'].update(**{item.name: field_config})
                 _meta.update(**module_model)
 
