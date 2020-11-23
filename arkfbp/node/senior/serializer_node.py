@@ -84,7 +84,6 @@ class SerializerNode(FieldNode, metaclass=SerializerNodeMetaclass):
             if outputs:
                 error_dict.update(outputs)
                 continue
-            print('node.show_value is', node.show_value)
             self.validated_data.update({node.source_field(field): node.show_value})
 
         return self.flow.shutdown(error_dict, response_status=400) if error_dict else self.inputs
@@ -242,8 +241,9 @@ class ModelSerializerNode(SerializerNode):
         """
         model delete.
         """
+        msg = 'Object Delete Success!'
         instance.delete()
-        return 'delete success!'
+        return msg
 
     def retrieve(self, **data):
         """
@@ -280,12 +280,13 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
         """
         handle model.
         """
-        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model, reset_response
+        # pylint: disable=line-too-long
+        from ...common.automation.admin.nodes.serializer import SerializerCore, search_available_model, reset_response, \
+            single_model_response
 
         index_value = None
         for key, value in api_detail.get('index', {}).items():
             # TODO 校验index value的合法性
-            # _, source_path, _, _ = import_field_config(key, value, self.flow.config)
             path = value if isinstance(value, str) else value.get('src')
             index = path.split('.')[-1]
             index_value = kwargs.get(key, None)
@@ -294,20 +295,17 @@ class AutoModelSerializerNode(ModelSerializerNode, SerializerNode):
         handler = api_detail.get('type', None)
         if handler == 'create':
             results = {}
-            for model, field in model_mapping.items():
+            for model, fields in model_mapping.items():
                 self.model = model
                 # pylint: disable=consider-using-dict-comprehension
-                collect_data = dict([(item, self.validated_data.get(item, None)) for item in field])
-                print('collect_data is', collect_data)
+                collect_data = dict([(field[1], self.validated_data.get(field[1])) for field in fields])
                 results[model] = self.create(**collect_data)
-            print('results is', results)
-            # TODO 通过response参数新建一个serializer，将相关的参数与results结合后返回特定格式的数据
-            self.instance = None
-            for key, value in results.items():
-                node = SerializerCore.get_serializer_node(api_detail['response'], self.flow.config, instance=value)
-                return node.data
-
-            return self.data
+            response = {}
+            for model, instance in results.items():
+                struct, config = single_model_response(model, api_detail['response'], self.flow.config)
+                node = SerializerCore.get_serializer_node(struct, config, instance=instance)
+                response.update(**node.data)
+            return response
 
         if handler == 'delete' and index_value is not None:
             for key, value in api_detail['index'].items():

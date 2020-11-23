@@ -91,6 +91,7 @@ class SerializerCore(FunctionNode):
             source, _, field_config, meta_config = import_field_config(field, detail, config)
             if source == 'internal':
                 continue
+
             if source == 'meta' and 'object' in field_config['type'].keys():
                 node = cls.get_serializer_node(field_config['type']['object'],
                                                meta_config,
@@ -98,6 +99,7 @@ class SerializerCore(FunctionNode):
                                                instance=instance)
                 cls_attr.update({field: node})
                 continue
+
             if source == 'meta' and 'array' in field_config['type'].keys():
                 child_node = cls.get_serializer_node({'item': field_config['type']['array']['array_item']},
                                                      meta_config,
@@ -105,11 +107,15 @@ class SerializerCore(FunctionNode):
                 node = ListSerializerNode(child=child_node, instance=instance)
                 cls_attr.update({field: node})
                 continue
-            cls_attr.update({field: get_field_node(field_config, config)})
+
+            if source == 'model':
+                source_name = detail.split('.')[-1] if isinstance(detail, str) else detail['src'].split('.')[-1]
+                source_name = None if source_name == field else source_name
+                cls_attr.update({field: get_field_node(field_config, config, source=source_name)})
+                continue
+
         cls_attr.update({'show_fields': show_fields, 'config': config})
-        # print('cls_attr is', cls_attr)
         _cls = type(cls_name, (serializer_handler or cls.serializer_handler, ), cls_attr)
-        # print('_cls is', _cls)
         return _cls(instance=instance)
 
     def intervene(self, api_detail):
@@ -183,7 +189,7 @@ def get_api_config(method, api_config):
 def import_field_config(field_name, field_detail, config):
     """
     import form local meta config or other meta config or model class.
-    return 字段来源, 字段路径, 字段具体配置信息
+    return 字段来源, 字段路径, 字段具体配置信息, 完整meta config.
     """
     _field_detail = {}
     if isinstance(field_detail, str):
@@ -242,7 +248,7 @@ def parse_field_config(field_config):
         return field_type, field_attrs
 
 
-def get_field_node(field_config, config):
+def get_field_node(field_config, config, source=None):
     """
     get field node.
     """
@@ -254,6 +260,8 @@ def get_field_node(field_config, config):
         return SerializerCore.get_serializer_node(field_attrs, config, serializer_handler=AutoModelSerializerNode)
     field_cls = FIELD_MAPPING[field_type]
     field_attrs.update(required=required)
+    if source:
+        field_attrs.update(source=source)
     return field_cls(**field_attrs)
 
 
@@ -266,11 +274,13 @@ def collect_model_mapping(fields, config):
     for field, detail in fields.items():
         source, source_path, _, _ = import_field_config(field, detail, config)
         if source == 'model':
+            model_field = detail.split('.')[-1] if isinstance(detail, str) else detail['src'].split('.')[-1]
             cls = get_class_from_path(source_path)
             if cls not in model_mapping.keys():
-                model_mapping[cls] = [field]
+                # (field, field_name) => (show_field, model_field)
+                model_mapping[cls] = [(field, model_field)]
                 continue
-            model_mapping[cls].append(field)
+            model_mapping[cls].append((field, model_field))
 
     return model_mapping
 
@@ -313,7 +323,6 @@ def reset_response(extend, response, show_fields, config):
             # 判断是否含有扩展的pagination字段，若存在将其加入ret中，并删除原始位置上的字段
             source, _, field_config, _ = import_field_config(key, detail, config)
             if source == 'internal':
-                # 进行重构 TODO
                 pass
             if source == 'meta':
                 if 'object' in field_config['type']:
@@ -322,8 +331,33 @@ def reset_response(extend, response, show_fields, config):
                             # 进行重构
                             # param => count or page or next or previous or results
                             param = field_detail.split('.')[-1]
-                            # print('param is', param)
                             response['results'][key].update(**{field: response[param]})
-                            # response[param]['']
                     return response['results']
     return response
+
+
+def single_model_response(model, struct, config):
+    """
+    reset response struct for single model.
+    """
+    _struct = {}
+    _config = copy.deepcopy(config)
+    for field, detail in struct.items():
+        source, source_path, field_config, config = import_field_config(field, detail, config)
+        if source == 'model' and source_path.split('.')[-1] == model.__name__:
+            _struct.update(**{field: detail})
+
+        if source == 'meta' and 'object' in field_config['type'].keys():
+            for key, value in field_config['type']['object'].items():
+                _source, _source_path, _, _ = import_field_config(key, value, config)
+                if _source == 'model':
+                    if _source_path.split('.')[-1] != model.__name__:
+                        del _config['meta'][source_path]['type']['object'][key]
+                    else:
+                        _struct.update(**{field: detail})
+
+        if source == 'meta' and 'array' in field_config['type'].keys():
+            # 一般情况下，array不会出现在single_model_response中
+            pass
+
+    return _struct, _config
