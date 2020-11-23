@@ -167,7 +167,7 @@ SOURCE_INTERNAL = 'internal'
 # field config definition
 OBJECT_TYPE = 'object'
 ARRAY_TYPE = 'array'
-ARRAY_TYPE_ITEM = 'item'
+ARRAY_TYPE_ITEM = 'array_item'
 FIELD_TYPE = 'type'
 FIELD_TITLE = 'title'
 FIELD_SRC = 'src'
@@ -345,7 +345,7 @@ def get_serializer_node(show_fields, config, serializer_handler=AutoModelSeriali
             continue
 
         if source == SOURCE_META and ARRAY_TYPE in field_config[FIELD_TYPE].keys():
-            child_node = get_serializer_node({ARRAY_TYPE_ITEM: field_config[FIELD_TYPE][ARRAY_TYPE][ARRAY_TYPE_ITEM]},
+            child_node = get_serializer_node({'item': field_config[FIELD_TYPE][ARRAY_TYPE][ARRAY_TYPE_ITEM]},
                                              meta_config,
                                              instance=instance)
             node = ListSerializerNode(child=child_node, instance=instance)
