@@ -4,9 +4,9 @@ Automatic crash project code.
 import os
 
 from django.urls import path
-from .admin.main import Main as AdminView
-from .meta_config.main import Main as MetaConfigView
-from ...utils.util import json_load
+from arkfbp.common.django.app.automation.flows.admin.main import Main as AdminView
+from arkfbp.common.django.app.automation.flows.meta_config.main import Main as MetaConfigView
+from arkfbp.utils.util import json_load
 
 REQUIRED_FIELDS = ('name', 'type', 'meta', 'api', 'module')
 DEFAULT_API_TYPES = {'create': 'POST', 'delete': 'DELETE', 'update': 'PATCH', 'retrieve': 'GET'}

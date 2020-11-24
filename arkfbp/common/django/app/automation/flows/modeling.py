@@ -1,6 +1,7 @@
 """
 自动化项目，JSON Config建模相关.
 """
+# pylint: disable=too-many-lines
 import copy
 import os
 import time
@@ -477,3 +478,41 @@ def single_model_response(model, struct, config):
             pass
 
     return _struct, _config
+
+
+# pylint: disable=protected-access
+def merge_meta(meta):
+    """
+    merge data for api: get meta config.
+    """
+    modules = meta.pop(CONFIG_MODULE)
+    _meta = {meta.pop(CONFIG_NAME): meta}
+    for meta_name, detail in modules.items():
+        if SOURCE_META in detail.keys():
+            # meta config
+            file_path = os.getcwd()
+            for item in detail[SOURCE_META].split('.'):
+                file_path = os.path.join(file_path, item)
+            file_path = f'{file_path}.json'
+            slave_meta = json_load(file_path)
+            module_meta = merge_meta(slave_meta)
+            _meta.update(**module_meta)
+
+        if SOURCE_MODEL in detail.keys():
+            # model config
+            module_model = {meta_name: {CONFIG_TYPE: "", CONFIG_META: {}, CONFIG_API: {}}}
+
+            # module_model = {"name": meta_name, "type": "", "meta": {}, "api": {}}
+            cls = get_class_from_path(detail[SOURCE_MODEL])
+            for item in cls._meta.fields:
+                field_type = MODEL_FIELD_MAPPING[item.__class__]
+                field_config = {
+                    FIELD_TITLE: item.verbose_name,
+                    FIELD_TYPE: {
+                        REVERSE_META_FIELD_MAPPING[field_type]: {}
+                    }
+                }
+                module_model[meta_name][SOURCE_META].update(**{item.name: field_config})
+            _meta.update(**module_model)
+
+    return _meta

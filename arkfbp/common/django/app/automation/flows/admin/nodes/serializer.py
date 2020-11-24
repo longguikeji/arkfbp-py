@@ -4,7 +4,7 @@ serializer
 from arkfbp.executer import Executer
 # pylint: disable=line-too-long
 from arkfbp.node import FunctionNode
-from ..utils.modeling import get_api_config, collect_model_mapping, get_serializer_node
+from ...modeling import get_api_config, collect_model_mapping, get_serializer_node
 
 
 # Editor your node here.
@@ -41,7 +41,6 @@ class SerializerCore(FunctionNode):
             return ret
         # pylint: disable=broad-except
         except Exception as exception:
-            print('exception is', exception)
             return self.flow.shutdown(exception.__str__(), response_status=500)
 
     def intervene(self, api_detail):
