@@ -1,10 +1,10 @@
 """
 Permission Core Nodes
 """
+from arkfbp.common.django.app.automation.flows.modeling import get_api_config
 from arkfbp.executer import Executer
 from arkfbp.node import FunctionNode
 from arkfbp.utils.util import get_class_from_path
-from ..nodes.serializer import get_api_config
 
 # Editor your node here.
 

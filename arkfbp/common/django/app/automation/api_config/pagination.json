@@ -1,0 +1,52 @@
+{
+  "name": "pagination",
+  "module": {},
+  "type": "",
+  "meta": {
+    "count": {
+      "title": "",
+      "type": {
+        "integer": {}
+      }
+    },
+    "page": {
+      "title": "",
+      "type": {
+        "integer": {}
+      }
+    },
+    "page_size": {
+      "title": "",
+      "type": {
+        "integer": {}
+      }
+    },
+    "next": {
+      "title": "",
+      "type": {
+        "string": {}
+      }
+    },
+    "previous": {
+      "title": "",
+      "type": {
+        "string": {}
+      }
+    },
+    "results": {
+      "title": "",
+      "type": {
+        "array": {
+          "array_item": "items"
+        }
+      }
+    },
+    "items": {
+      "title": "",
+      "type": {
+        "any": {}
+      }
+    }
+  },
+  "api": {}
+}
