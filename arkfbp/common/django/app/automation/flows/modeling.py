@@ -159,6 +159,7 @@ CONFIG_MODULE = 'module'
 CONFIG_META = 'meta'
 CONFIG_API = 'api'
 CONFIG_API_INDEX = 'index'
+CONFIG_PERMISSION = 'permission'
 
 # field source definition
 SOURCE_MODEL = 'model'
@@ -178,9 +179,14 @@ FIELD_REQUIRED = 'required'
 API_TYPE = 'type'
 API_REQUEST = 'request'
 API_RESPONSE = 'response'
+API_PERMISSION = 'permission'
+API_DEBUG = 'debug'
 
 # extend for internal field
 EXTEND_PAGINATION = 'pagination'
+
+# role config field
+ROLE_FLOW = 'flow'
 
 # meta字段的类型
 META_FIELD_MAPPING = {
@@ -250,6 +256,7 @@ MODEL_FIELD_MAPPING = {
 }
 
 
+# config...
 def get_api_config(method: str, api_config: dict) -> (str, dict):
     """
     get api config from meta config by request http method.
@@ -265,7 +272,7 @@ def get_api_config(method: str, api_config: dict) -> (str, dict):
 
 
 # pylint: disable=no-else-return, protected-access, too-many-nested-blocks
-def import_field_config(field_name, field_detail, config):
+def import_field_config(field_name: str, field_detail: str, config: dict) -> (str, str, dict, dict):
     """
     import form local meta config or other meta config or model class.
     return < 字段来源, 字段路径, 字段具体配置信息, 完整meta config >.
@@ -278,7 +285,7 @@ def import_field_config(field_name, field_detail, config):
         path = _field_detail.pop(FIELD_SRC, field_name)
     # 内部扩展的属性，不属于meta和model
     if path.startswith('.'):
-        return SOURCE_INTERNAL, path, None, config
+        return SOURCE_INTERNAL, path, {}, config
     # _path => ['user', 'username'] or ['username']
     _path = path.split('.')
     if len(_path) == 1:
@@ -319,8 +326,64 @@ def import_field_config(field_name, field_detail, config):
     raise Exception({'error': f'Path:{path} Config Not Exists!'})
 
 
+def get_permission(permissions: list, config: dict) -> list:
+    """
+    get permission from api permission field.
+    permissions => ["admin"]
+    """
+    permission_config = config.get(CONFIG_PERMISSION)
+    flows = []
+    for item in permissions:
+        meta_permission = json_load(
+            os.path.join(os.getcwd(), f'{"/".join(permission_config[item.split(".")[0]].split("."))}.json'))
+        flows.append(get_class_from_path(f'{meta_permission[item.split(".")[1]][ROLE_FLOW]}.main.Main'))
+    return flows
+
+
+# pylint: disable=protected-access
+def merge_meta(meta: dict) -> dict:
+    """
+    merge data for api: get meta config.
+    """
+    modules = meta.pop(CONFIG_MODULE)
+    _meta = {meta.pop(CONFIG_NAME): meta}
+    for meta_name, detail in modules.items():
+        if SOURCE_META in detail.keys():
+            # meta config
+            file_path = os.getcwd()
+            for item in detail[SOURCE_META].split('.'):
+                file_path = os.path.join(file_path, item)
+            file_path = f'{file_path}.json'
+            slave_meta = json_load(file_path)
+            module_meta = merge_meta(slave_meta)
+            _meta.update(**module_meta)
+
+        if SOURCE_MODEL in detail.keys():
+            # model config
+            module_model = {meta_name: {CONFIG_TYPE: "", CONFIG_META: {}, CONFIG_API: {}}}
+
+            # module_model = {"name": meta_name, "type": "", "meta": {}, "api": {}}
+            cls = get_class_from_path(detail[SOURCE_MODEL])
+            for item in cls._meta.fields:
+                field_type = MODEL_FIELD_MAPPING[item.__class__]
+                field_config = {
+                    FIELD_TITLE: item.verbose_name,
+                    FIELD_TYPE: {
+                        REVERSE_META_FIELD_MAPPING[field_type]: {}
+                    }
+                }
+                module_model[meta_name][SOURCE_META].update(**{item.name: field_config})
+            _meta.update(**module_model)
+
+    return _meta
+
+
+# serializer...
 # pylint: disable=too-many-locals
-def get_serializer_node(show_fields, config, serializer_handler=AutoModelSerializerNode, instance=None):
+def get_serializer_node(show_fields: dict,
+                        config: dict,
+                        serializer_handler=AutoModelSerializerNode,
+                        instance=None) -> object:
     """
     Dynamically generate serializer node with
     field node which in request_config and response.
@@ -364,7 +427,7 @@ def get_serializer_node(show_fields, config, serializer_handler=AutoModelSeriali
     return _cls(instance=instance)
 
 
-def get_field_node(field_config, config, source=None):
+def get_field_node(field_config: dict, config: dict, source=None) -> object:
     """
     get field node.
     """
@@ -382,7 +445,7 @@ def get_field_node(field_config, config, source=None):
     return field_cls(**field_attrs)
 
 
-def collect_model_mapping(fields, config):
+def collect_model_mapping(fields: dict, config: dict) -> dict:
     """
     fields => {"username":{"src":"model_user.username"}, "password":"password"}
     return: {models.User: ['username', 'password'], models.Group: ['id']}
@@ -402,7 +465,7 @@ def collect_model_mapping(fields, config):
     return model_mapping
 
 
-def search_available_model(field_name, field_detail, config):
+def search_available_model(field_name: str, field_detail: str, config: dict):
     """
     field_name => username
     field_detail => user or group.user
@@ -429,7 +492,15 @@ def search_available_model(field_name, field_detail, config):
     return None
 
 
-def reset_response(extend, response, show_fields, config):
+def set_flow_debug(flow, api_detail):
+    """
+    set flow debug from api_detail.debug
+    """
+    flow.debug = api_detail.get(API_DEBUG, True)
+
+
+# response...
+def reset_response(extend: str, response: dict, show_fields: dict, config: dict) -> dict:
     """
     reset response because of `.pagination` and so on.
     """
@@ -453,7 +524,7 @@ def reset_response(extend, response, show_fields, config):
     return response
 
 
-def single_model_response(model, struct, config):
+def single_model_response(model: object, struct: dict, config: dict) -> (dict, dict):
     """
     reset response struct for single model.
     """
@@ -478,41 +549,3 @@ def single_model_response(model, struct, config):
             pass
 
     return _struct, _config
-
-
-# pylint: disable=protected-access
-def merge_meta(meta):
-    """
-    merge data for api: get meta config.
-    """
-    modules = meta.pop(CONFIG_MODULE)
-    _meta = {meta.pop(CONFIG_NAME): meta}
-    for meta_name, detail in modules.items():
-        if SOURCE_META in detail.keys():
-            # meta config
-            file_path = os.getcwd()
-            for item in detail[SOURCE_META].split('.'):
-                file_path = os.path.join(file_path, item)
-            file_path = f'{file_path}.json'
-            slave_meta = json_load(file_path)
-            module_meta = merge_meta(slave_meta)
-            _meta.update(**module_meta)
-
-        if SOURCE_MODEL in detail.keys():
-            # model config
-            module_model = {meta_name: {CONFIG_TYPE: "", CONFIG_META: {}, CONFIG_API: {}}}
-
-            # module_model = {"name": meta_name, "type": "", "meta": {}, "api": {}}
-            cls = get_class_from_path(detail[SOURCE_MODEL])
-            for item in cls._meta.fields:
-                field_type = MODEL_FIELD_MAPPING[item.__class__]
-                field_config = {
-                    FIELD_TITLE: item.verbose_name,
-                    FIELD_TYPE: {
-                        REVERSE_META_FIELD_MAPPING[field_type]: {}
-                    }
-                }
-                module_model[meta_name][SOURCE_META].update(**{item.name: field_config})
-            _meta.update(**module_model)
-
-    return _meta

@@ -4,7 +4,7 @@ serializer
 from arkfbp.executer import Executer
 # pylint: disable=line-too-long
 from arkfbp.node import FunctionNode
-from ...modeling import get_api_config, collect_model_mapping, get_serializer_node
+from ...modeling import get_api_config, collect_model_mapping, get_serializer_node, set_flow_debug
 
 
 # Editor your node here.
@@ -48,4 +48,4 @@ class SerializerCore(FunctionNode):
         Change some properties of flow to interfere with the flow direction.
         """
         # debug or not
-        self.flow.debug = api_detail.get('debug', True)
+        set_flow_debug(self.flow, api_detail)
