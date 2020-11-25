@@ -592,6 +592,17 @@ _这样你就为`inputs`增加了`attr`的属性_
 
 ## 编辑 meta-config
 
+meta-config最外层结构如下：
+    
+    {
+      "name": "",
+      "type": "",
+      "module": {},
+      "meta": {},
+      "permission": {},
+      "api": {}
+    }
+   
 ### name
 meta_config的名称，唯一标识（推荐和文件名相同）。
     
@@ -617,6 +628,43 @@ model类及meta文件的具体路径。
           "meta": "automation.util"
         }
       }
+
+### permission
+权限校验相关的路径。
+
+    {
+      "permission": {
+        "role": "demo.permission.role"
+      }
+    }
+
+其中role表示别名即命名空间，demo.permission.role指定的为role相关的meta config的JSON文件，实例如下：
+
+    {
+      "admin": {
+        "title": "管理员",
+        "flow": "demo.permission.role.admin"
+      }
+    }
+
+其中admin为权限角色名称，title为权限名字，flow指定了具体校验时需要运行的工作流。
+
+#### 使用方法
+在api配置中增加permission字段来标识需要用到的permission。
+
+    {
+      "api": {
+        "user/": {
+          "post": {
+            "name": "新建用户",
+            "type": "create",
+            "request": {},
+            "response": {},
+            "permission": ["role.admin"]  # role为上述的命名空间，admin为文件中指定的admin角色。
+          }
+        }
+      }
+    }
 
 ### meta
 包含了model所有的字段信息及校验规则，书写方式分为module导入，或者自定义。
