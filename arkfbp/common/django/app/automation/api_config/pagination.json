@@ -4,37 +4,37 @@
   "type": "",
   "meta": {
     "count": {
-      "title": "",
+      "title": "记录总数",
       "type": {
         "integer": {}
       }
     },
     "page": {
-      "title": "",
+      "title": "页码",
       "type": {
         "integer": {}
       }
     },
     "page_size": {
-      "title": "",
+      "title": "页面大小",
       "type": {
         "integer": {}
       }
     },
     "next": {
-      "title": "",
+      "title": "下一页链接",
       "type": {
         "string": {}
       }
     },
     "previous": {
-      "title": "",
+      "title": "上一页链接",
       "type": {
         "string": {}
       }
     },
     "results": {
-      "title": "",
+      "title": "响应数据",
       "type": {
         "array": {
           "array_item": "items"
@@ -42,7 +42,7 @@
       }
     },
     "items": {
-      "title": "",
+      "title": "响应数据中的元素",
       "type": {
         "any": {}
       }
