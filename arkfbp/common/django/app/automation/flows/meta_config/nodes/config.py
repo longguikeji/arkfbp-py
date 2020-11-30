@@ -9,7 +9,7 @@ from ...modeling import merge_meta, CONFIG_NAME
 # Editor your node here.
 
 
-class ConfigMeta(FunctionNode):
+class ConfigCore(FunctionNode):
     """
     return frontend a meta json data.
     """

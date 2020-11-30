@@ -4,7 +4,7 @@ meta config flow
 from arkfbp.flow import ViewFlow
 from arkfbp.node import StartNode, StopNode
 
-from .nodes.config_meta import ConfigMeta
+from .nodes.config import ConfigCore
 
 
 class Main(ViewFlow):
@@ -22,7 +22,7 @@ class Main(ViewFlow):
             'x': None,
             'y': None
         }, {
-            'cls': ConfigMeta,
+            'cls': ConfigCore,
             'id': 'config_meta',
             'next': 'stop',
             'x': None,
