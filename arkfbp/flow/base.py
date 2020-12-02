@@ -119,10 +119,10 @@ class Flow:
                 graph_node = graph_parser.parse_graph_node(graph_node)
                 node = graph_node.instance
                 # 运行`node`实例
-                outputs = Executer.start_node(node, self, graph_node, *args, **kwargs)
+                Executer.start_node(node, self, graph_node, *args, **kwargs)
                 if not self.valid_status():
                     return self.outputs
-                graph_node = graph_node.next_graph_node(outputs)
+                graph_node = graph_node.next_graph_node(node)
         # pylint:disable=broad-except
         except Exception as exception:
             self.terminate(exception)

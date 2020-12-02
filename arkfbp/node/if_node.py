@@ -17,11 +17,10 @@ class IFNode(Node):
         self.ret = bool(self.expression())
         if self.ret:
             self.next = 'positive_next'
-            self.positive_statement()
+            return self.positive_statement()
         else:
             self.next = 'negative_next'
-            self.negative_statement()
-        return self.ret
+            return self.negative_statement()
 
     def expression(self):
         return True
