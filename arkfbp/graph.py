@@ -68,7 +68,9 @@ class GraphNode:
         # else:
         #     graph_node = self.next
         # return graph_node
-        return self.__getattribute__(node.next)
+        if node.next in node.next_values:
+            return self.__getattribute__(node.next)
+        raise Exception('node.next: '+node.next+' need declare in node.next_values')
 
 
 class GraphParser:
