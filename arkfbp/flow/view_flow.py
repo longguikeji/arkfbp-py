@@ -12,7 +12,7 @@ from .base import Flow
 # pylint: disable=abstract-method
 class ViewFlow(Flow, View):
     """
-    django view
+    django view.
     """
 
     # 需要手动设置流的访问方式
@@ -22,20 +22,19 @@ class ViewFlow(Flow, View):
     authentication_node_classes = []
     permission_node_classes = []
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        override django view function dispatch.
+        """
+        if request.method.upper() in self.allow_http_method:
+            return Executer.start_flow(self, request, *args, **kwargs)
+
     @classmethod
     def set_http_method(cls, method: list):
         """
         set http method.
         """
         cls.allow_http_method = method
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        django view function dispatch.
-        """
-        if request.method.upper() in self.allow_http_method:
-            return Executer.start_flow(self, request, *args, **kwargs)
-        return self.http_method_not_allowed(request, *args, **kwargs)
 
     @classonlymethod
     def pre_as_view(cls, http_method=None, **initkwargs):

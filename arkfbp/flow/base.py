@@ -9,7 +9,7 @@ from cachetools.keys import hashkey
 
 from arkfbp.executer import Executer
 from ..graph import Graph, GraphParser
-from ..state import State, AppState
+from ..state import AppState, FlowState
 
 FLOW_RUNNING = 'RUNNING'
 FLOW_CREATED = 'CREATED'
@@ -29,7 +29,7 @@ class Flow:
 
     def __init__(self):
         self.graph = self.create_graph()
-        self._state = State()
+        self._state = FlowState()
         self._app_state = AppState()
         manual_state = self.create_state()
         if isinstance(manual_state, dict):
