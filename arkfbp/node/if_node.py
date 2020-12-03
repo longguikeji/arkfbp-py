@@ -6,6 +6,8 @@ _NODE_KIND = 'if'
 
 
 class IFNode(Node):
+    next_values = ['error_next','positive_next','negative_next']
+
     name = _NODE_NAME
     kind = _NODE_KIND
 
@@ -14,8 +16,11 @@ class IFNode(Node):
     def run(self, *args, **kwargs):
         self.ret = bool(self.expression())
         if self.ret:
+            self.next = 'positive_next'
             return self.positive_statement()
-        return self.negative_statement()
+        else:
+            self.next = 'negative_next'
+            return self.negative_statement()
 
     def expression(self):
         return True
