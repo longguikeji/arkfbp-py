@@ -47,30 +47,25 @@ class GraphNode:
         self.id = node_id
 
         # next
-        # if issubclass(node_cls, IFNode):
-        #     positive_next_id = self.graph_node.get('positive_next', None)
-        #     self.positive_next = handler.get_graph_node(positive_next_id) if positive_next_id else None
-        #     negative_next_id = self.graph_node.get('negative_next', None)
-        #     self.negative_next = handler.get_graph_node(negative_next_id) if negative_next_id else None
-        # else:
-        for next_v in node_cls.next_values:
-            next_id = self.graph_node.get(next_v, None)
-            self.__setattr__(next_v, handler.get_graph_node(next_id) if next_id else None)
-            # self.next = handler.get_graph_node(next_id) if next_id else None
+        if issubclass(node_cls, IFNode):
+            positive_next_id = self.graph_node.get('positive_next', None)
+            self.positive_next = handler.get_graph_node(positive_next_id) if positive_next_id else None
+            negative_next_id = self.graph_node.get('negative_next', None)
+            self.negative_next = handler.get_graph_node(negative_next_id) if negative_next_id else None
+        else:
+            next_id = self.graph_node.get('next', None)
+            self.next = handler.get_graph_node(next_id) if next_id else None
 
     @property
     def instance(self):
         return self.cls()
 
-    def next_graph_node(self, node):
-        # if issubclass(self.cls, IFNode):
-        #     graph_node = self.positive_next if node_ret else self.negative_next
-        # else:
-        #     graph_node = self.next
-        # return graph_node
-        if node.next in node.next_values:
-            return self.__getattribute__(node.next)
-        raise Exception('node.next: '+node.next+' need declare in node.next_values')
+    def next_graph_node(self, node_ret):
+        if issubclass(self.cls, IFNode):
+            graph_node = self.positive_next if node_ret else self.negative_next
+        else:
+            graph_node = self.next
+        return graph_node
 
 
 class GraphParser:
