@@ -10,8 +10,8 @@ class Node:
     id = _NODE_ID
     name = _NODE_NAME
     kind = _NODE_KIND
-    next_values = ['next','error_next']
-    next = 'next'
+    next = None
+    error_next = None
 
     def __init__(self, *args, **kwargs):
         self._state = None
