@@ -1,15 +1,17 @@
 """
 siteapi flow
 """
-from arkfbp.flow import ViewsetFlow
+from arkfbp.flow import GenericAPIViewFlow
 from arkfbp.node import StartNode, StopNode
 from arkfbp.common.django.app.automation.flows.admin.nodes.queryset_node import QuerysetCore
 
 from .nodes.permission import PermissionCore
+from .nodes.intermediate_node import InterMediateCore
+from .nodes.renderer_node import RendererCore
 from ..admin.nodes.serializer import SerializerCore
 
 
-class Main(ViewsetFlow):
+class Main(GenericAPIViewFlow):
     """
     Main FLow.
     """
@@ -44,6 +46,20 @@ class Main(ViewsetFlow):
             {
                 'cls': SerializerCore,
                 'id': 'serializer_core',
+                'next': 'intermediate_core',
+                'x': None,
+                'y': None
+            },
+            {
+                'cls': InterMediateCore,
+                'id': 'intermediate_core',
+                'next': 'renderer_core',
+                'x': None,
+                'y': None
+            },
+            {
+                'cls': RendererCore,
+                'id': 'renderer_core',
                 'next': 'stop',
                 'x': None,
                 'y': None
