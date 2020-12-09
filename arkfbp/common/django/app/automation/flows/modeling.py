@@ -15,6 +15,7 @@ from arkfbp.node import (CharFieldNode, IntegerFieldNode, FloatFieldNode, ListSe
                          PaginationNode)
 
 from arkfbp.utils.util import get_class_from_path, json_load
+# import rest_framework
 
 # ModelSerializerNode metadata
 _AUTO_MODEL_SERIALIZER_NODE_NAME = 'auto_model_serializer'
