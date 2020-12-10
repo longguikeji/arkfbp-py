@@ -3,7 +3,7 @@ Permission Core Nodes
 """
 from arkfbp.executer import Executer
 from arkfbp.node import FunctionNode
-from ...modeling import get_api_config, get_permission, API_PERMISSION, set_flow_debug
+from common.django.app.automation.flows.modeling import get_api_config, get_permission, API_PERMISSION, set_flow_debug
 
 # Editor your node here.
 

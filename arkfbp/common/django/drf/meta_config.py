@@ -4,7 +4,7 @@ Automatic crash project code.
 import os
 
 from django.urls import path
-from arkfbp.common.django.app.automation.flows.admin.drf_main import Main as AdminView
+from common.django.drf.flows.dispatch import Main as AdminView
 from arkfbp.common.django.app.automation.flows.meta_config.main import Main as MetaConfigView
 from arkfbp.utils.util import json_load
 

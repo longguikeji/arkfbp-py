@@ -1,17 +1,17 @@
 """
 siteapi flow
 """
-from arkfbp.flow import GenericAPIViewFlow
 from arkfbp.node import StartNode, StopNode
-from arkfbp.common.django.app.automation.flows.admin.nodes.queryset_node import QuerysetCore
+from common.django.drf.nodes.queryset import QuerysetCore
+from common.django.drf.generics import GenericAPIView
 
-from .nodes.permission import PermissionCore
-from .nodes.intermediate_node import InterMediateCore
-from .nodes.renderer_node import RendererCore
-from ..admin.nodes.serializer import SerializerCore
+from common.django.app.automation.flows.admin.nodes.permission import PermissionCore
+from common.django.drf.nodes.intermediate import InterMediateCore
+from common.django.drf.nodes.renderer import RendererCore
+from common.django.app.automation.flows.admin.nodes.serializer import SerializerCore
 
 
-class Main(GenericAPIViewFlow):
+class Main(GenericAPIView):
     """
     Main FLow.
     """

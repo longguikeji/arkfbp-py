@@ -1,7 +1,15 @@
-# 2020-12-9 am
+# 2020-12-9
+
+## am
+
 建立apiflow路径文件。
 
 **TODO**
 
 - 重写MetaConfig
 - 重写ViewFlow
+
+
+## pm
+
+改写renderer 和 response 部分

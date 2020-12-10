@@ -1,14 +1,16 @@
-"""
-View Flow.
+"""Process requests from django.
+
+A flow is a django view which process request.
+ We convert an interface in config.json to an APIView, and process requests with flows.
 """
 from django.utils.decorators import classonlymethod
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView as GenericAPIViewBase
 from arkfbp.executer import Executer
-from .base import Flow
+from arkfbp.flow.base import Flow
 
 
 # pylint: disable=abstract-method
-class GenericAPIViewFlow(Flow, GenericAPIView):
+class GenericAPIView(Flow, GenericAPIViewBase):
     """
     django view.
     """
