@@ -13,7 +13,5 @@ class QuerysetCore(FunctionNode):
     permission core node.
     """
     def run(self, *args, **kwargs):
-        print()
-        print('Hello this is the new line!!!')
-        print()
-        return self.inputs
+        queryset = self.flow.get_queryset()
+        return queryset

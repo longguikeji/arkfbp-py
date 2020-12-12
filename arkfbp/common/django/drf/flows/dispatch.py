@@ -4,13 +4,9 @@ siteapi flow
 from arkfbp.node import StartNode, StopNode
 from common.django.drf.nodes.init_request import InitRequestCore
 from common.django.drf.nodes.method_handler import HandlerCore
-from common.django.drf.nodes.queryset import QuerysetCore
-from common.django.drf.generics import ModelViewSet, ViewsetMeta
+from common.django.drf.generics import ModelViewSet
 
-from common.django.app.automation.flows.admin.nodes.permission import PermissionCore
-from common.django.drf.nodes.intermediate import InterMediateCore
 from common.django.drf.nodes.renderer import RendererCore
-from common.django.app.automation.flows.admin.nodes.serializer import SerializerCore
 
 
 class Main(ModelViewSet):
@@ -34,18 +30,10 @@ class Main(ModelViewSet):
             {
                 'cls': InitRequestCore,
                 'id': 'init',
-                'next': 'queryset_core',
-                'x': None,
-                'y': None
-            },
-            {
-                'cls': QuerysetCore,
-                'id': 'queryset_core',
                 'next': 'handler_core',
                 'x': None,
                 'y': None
             },
-
             {
                 'cls': HandlerCore,
                 'id': 'handler_core',

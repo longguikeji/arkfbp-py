@@ -3,7 +3,8 @@ siteapi flow
 """
 from arkfbp.node import StartNode, StopNode
 from arkfbp.flow import Flow
-from common.django.drf.nodes.intermediate import InterMediateCore
+from common.django.drf.nodes.get_object import GetObjectCore
+from common.django.drf.nodes.update_obj_serialize import UpdateObjSerializerCore
 
 
 class UpdateHandler(Flow):
@@ -20,13 +21,20 @@ class UpdateHandler(Flow):
             {
                 'cls': StartNode,
                 'id': 'start',
-                'next': 'inter',
+                'next': 'get_object',
                 'x': None,
                 'y': None
             },
             {
-                'cls': InterMediateCore,
-                'id': 'inter',
+                'cls': GetObjectCore,
+                'id': 'get_object',
+                'next': 'update',
+                'x': None,
+                'y': None
+            },
+            {
+                'cls': UpdateObjSerializerCore,
+                'id': 'update',
                 'next': 'stop',
                 'x': None,
                 'y': None

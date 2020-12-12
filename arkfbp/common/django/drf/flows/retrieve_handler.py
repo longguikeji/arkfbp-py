@@ -3,7 +3,8 @@ siteapi flow
 """
 from arkfbp.node import StartNode, StopNode
 from arkfbp.flow import Flow
-from common.django.drf.nodes.intermediate import InterMediateCore
+from common.django.drf.nodes.get_object import GetObjectCore
+from common.django.drf.nodes.obj_serialize import ObjSerializeCore
 
 
 class RetrieveHandler(Flow):
@@ -20,13 +21,20 @@ class RetrieveHandler(Flow):
             {
                 'cls': StartNode,
                 'id': 'start',
-                'next': 'inter',
+                'next': 'get_object',
                 'x': None,
                 'y': None
             },
             {
-                'cls': InterMediateCore,
-                'id': 'inter',
+                'cls': GetObjectCore,
+                'id': 'get_object',
+                'next': 'serialize',
+                'x': None,
+                'y': None
+            },
+            {
+                'cls': ObjSerializeCore,
+                'id': 'serialize',
                 'next': 'stop',
                 'x': None,
                 'y': None

@@ -3,7 +3,8 @@ siteapi flow
 """
 from arkfbp.node import StartNode, StopNode
 from arkfbp.flow import Flow
-from common.django.drf.nodes.intermediate import InterMediateCore
+from common.django.drf.nodes.get_queryset import QuerysetCore
+from common.django.drf.nodes.many_serialize import ManySerializeCore
 
 
 class ListHandler(Flow):
@@ -20,13 +21,20 @@ class ListHandler(Flow):
             {
                 'cls': StartNode,
                 'id': 'start',
-                'next': 'inter',
+                'next': 'get_queryset',
                 'x': None,
                 'y': None
             },
             {
-                'cls': InterMediateCore,
-                'id': 'inter',
+                'cls': QuerysetCore,
+                'id': 'get_queryset',
+                'next': 'serialize',
+                'x': None,
+                'y': None
+            },
+            {
+                'cls': ManySerializeCore,
+                'id': 'serialize',
                 'next': 'stop',
                 'x': None,
                 'y': None
