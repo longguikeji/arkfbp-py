@@ -3,7 +3,7 @@
 A flow is a django view which process request.
  We convert an interface in config.json to an APIView, and process requests with flows.
 """
-
+from arkfbp.graph import GraphParser
 from rest_framework import serializers
 from rest_framework.viewsets import ModelViewSet as ModelViewSetBase
 from arkfbp.executer import Executer
@@ -24,6 +24,7 @@ class GeneralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = None
+        fields = '__all__'
 
 
 # pylint: disable=abstract-method
@@ -76,7 +77,7 @@ class ModelViewSet(ModelViewSetBase, Flow):
         """
         shutdown the flow.
         """
-        self.response_status = kwargs.get('response_status', self.response_status)
+        self.response_status = kwargs.get('response_status', 200)
         super().shutdown(outputs)
 
     @property
@@ -96,3 +97,19 @@ class ModelViewSet(ModelViewSetBase, Flow):
 
         response = self.finalize_response(self.request, response, *self.args, **self.kwargs)
         self.outputs = response
+
+    def run_sub_flow(self, sub_flow, *args, **kwargs):
+        """在当前上下文环境运行一个sub_flow,获得结果。"""
+        graph_parser = GraphParser(sub_flow.graph)
+        graph_node = graph_parser.get_entry_node()
+        outputs = None
+        while graph_node:
+            # 获取`node`实例
+            graph_node = graph_parser.parse_graph_node(graph_node)
+            node = graph_node.instance
+            # 运行`node`实例
+            outputs = Executer.start_node(node, self, graph_node, *args, **kwargs)
+            if not self.valid_status():
+                return self.outputs
+            graph_node = graph_node.next_graph_node(outputs)
+        return outputs

@@ -2,6 +2,7 @@
 Permission Core Nodes
 """
 from arkfbp.node import FunctionNode
+from rest_framework.response import Response
 
 
 class RendererCore(FunctionNode):
@@ -13,7 +14,9 @@ class RendererCore(FunctionNode):
     def run(self, *args, **kwargs):
         # the inputs is an Drf Response Here.
         #
+        assert isinstance(self.inputs, Response), 'Require Response instance as inputs'
         request = self.flow.request
+
         response = self.flow.finalize_response(request, self.inputs, *args, **kwargs)
 
         return response
