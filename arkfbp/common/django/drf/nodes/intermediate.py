@@ -10,5 +10,5 @@ class InterMediateCore(FunctionNode):
     permission core node.
     """
     def run(self, *args, **kwargs):
-        response = Response(self.inputs)
+        response = Response()
         return response

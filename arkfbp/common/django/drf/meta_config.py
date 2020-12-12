@@ -12,7 +12,7 @@ from common.django.drf.flows.dispatch import Main as ModelViewSet
 from arkfbp.common.django.app.automation.flows.meta_config.main import Main as MetaConfigView
 
 from django.apps import apps
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import DefaultRouter, SimpleRouter
 from utils.util import json_load
 
 REQUIRED_FIELDS = ('name', 'type', 'meta', 'api', 'module')
@@ -59,7 +59,7 @@ def parse_env_from_conf(app_label, filename, conf):
     if router_info:
         router = parse_router(router_info)
     else:
-        router = DefaultRouter()
+        router = SimpleRouter()
     return router, route_path, {
         'model': model,
         'queryset': queryset,
@@ -90,14 +90,11 @@ class MetaConfigs:
             for file in files:
                 if file.endswith('.json'):
                     data = json_load(os.path.join(conf_path, file))
-                    #print('file', file)
                     filename = file.split('.')[0]
-                    if 'model' in data:
+                    if 'model' in data:    # 如果config里面定义了 model字段，就说明这是一套查改增删接口。
                         viewset_name = f'{app_label}'
                         router, route_path, env = parse_env_from_conf(app_label, filename, data)
                         Viewset = ViewsetMeta(viewset_name, (ModelViewSet,), env)
-                        #print(Viewset)
-                        #print(Viewset)
                         router.register(route_path, Viewset)
                         urlpatterns += router.urls
         urlpatterns += self.config_url()

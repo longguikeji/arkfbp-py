@@ -3,8 +3,6 @@ Permission Core Nodes
 """
 from arkfbp.node import FunctionNode
 
-# Editor your node here.
-
 
 class RendererCore(FunctionNode):
     """Render response to HttpResponse

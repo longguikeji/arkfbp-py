@@ -2,6 +2,7 @@
 siteapi flow
 """
 from arkfbp.node import StartNode, StopNode
+from common.django.drf.nodes.init_request import InitRequestCore
 from common.django.drf.nodes.queryset import QuerysetCore
 from common.django.drf.generics import ModelViewSet, ViewsetMeta
 
@@ -11,7 +12,7 @@ from common.django.drf.nodes.renderer import RendererCore
 from common.django.app.automation.flows.admin.nodes.serializer import SerializerCore
 
 
-class Main(ModelViewSet, metaclass=ViewsetMeta):
+class Main(ModelViewSet):
     """
     Main FLow.
     """
@@ -25,13 +26,13 @@ class Main(ModelViewSet, metaclass=ViewsetMeta):
             {
                 'cls': StartNode,
                 'id': 'start',
-                'next': 'permission_core',
+                'next': 'init',
                 'x': None,
                 'y': None
             },
             {
-                'cls': PermissionCore,
-                'id': 'permission_core',
+                'cls': InitRequestCore,
+                'id': 'init',
                 'next': 'queryset_core',
                 'x': None,
                 'y': None
@@ -39,17 +40,11 @@ class Main(ModelViewSet, metaclass=ViewsetMeta):
             {
                 'cls': QuerysetCore,
                 'id': 'queryset_core',
-                'next': 'serializer_core',
-                'x': None,
-                'y': None
-            },
-            {
-                'cls': SerializerCore,
-                'id': 'serializer_core',
                 'next': 'intermediate_core',
                 'x': None,
                 'y': None
             },
+
             {
                 'cls': InterMediateCore,
                 'id': 'intermediate_core',

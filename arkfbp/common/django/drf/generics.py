@@ -3,11 +3,13 @@
 A flow is a django view which process request.
  We convert an interface in config.json to an APIView, and process requests with flows.
 """
-from django.utils.decorators import classonlymethod
+
 from rest_framework import serializers
 from rest_framework.viewsets import ModelViewSet as ModelViewSetBase
 from arkfbp.executer import Executer
-from arkfbp.flow.base import Flow
+from arkfbp.flow.base import Flow, FLOW_ERROR
+from state import FlowState, AppState
+
 
 class ViewsetMeta(type):
     """
@@ -23,11 +25,25 @@ class GeneralSerializer(serializers.ModelSerializer):
     class Meta:
         model = None
 
+
 # pylint: disable=abstract-method
-class ModelViewSet(Flow, ModelViewSetBase):
+class ModelViewSet(ModelViewSetBase, Flow):
     """
-    经过改造后的ModelViewSet基类。混合三个主要特性: Flow 的特性， 标准查改增删特性
+    经过改造后的ModelViewSet基类。混合两个主要特性: Flow 的特性， 标准查改增删特性
     """
+
+    def __init__(self, *args, **kwargs):
+        self.graph = self.create_graph()
+        self._state = FlowState()
+        self._app_state = AppState()
+        manual_state = self.create_state()
+        if isinstance(manual_state, dict):
+            self.state.commit(manual_state)
+        self._request = None
+        self._response = None
+        self._status = 'CREATED'
+        self.error = None
+        super().__init__(*args, **kwargs)
 
     def get_queryset(self):
         model = self.model
@@ -44,7 +60,9 @@ class ModelViewSet(Flow, ModelViewSetBase):
         """
         override django view function dispatch.
         """
-        if request.method.lower() in self.allow_http_method:
+        self.args = args
+        self.kwargs = kwargs
+        if request.method in self.allowed_methods:
             return Executer.start_flow(self, request, *args, **kwargs)
 
     @classmethod
@@ -53,16 +71,6 @@ class ModelViewSet(Flow, ModelViewSetBase):
         set http method.
         """
         cls.allow_http_method = method
-
-    @classonlymethod
-    def as_view(cls, http_method=None, **initkwargs):
-        """
-        Before executing the as_view function, pass it the `allow_http_method`
-        """
-        if http_method:
-            cls.set_http_method(http_method)
-        #initkwargs.pop('suffix')
-        return super().as_view(actions=http_method) # , **initkwargs)
 
     def shutdown(self, outputs, **kwargs):
         """
@@ -78,6 +86,13 @@ class ModelViewSet(Flow, ModelViewSetBase):
         """
         return self.outputs
 
-    @classonlymethod
-    def get_urls(cls):
-        return []
+    def terminate(self, exception):
+        """
+        when a exception raises in a flow,it will be called.
+        """
+        self._status = FLOW_ERROR
+        self.error = exception
+        response = self.handle_exception(exception)
+
+        response = self.finalize_response(self.request, response, *self.args, **self.kwargs)
+        self.outputs = response
