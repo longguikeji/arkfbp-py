@@ -1,0 +1,11 @@
+{"models": [
+   {"className": "User",
+     "fields": [
+        {"name": "username",
+         "field": "CharField",
+         "properties": {"verbose_name": "用户名", "max_length": 128, "unique": true}
+        }
+     ]
+   }
+]
+}
