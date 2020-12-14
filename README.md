@@ -856,3 +856,12 @@ model类及meta文件的具体路径。
 ### 运行项目
     
     python manage.py runserver
+
+
+## 通过model_config生成models.py
+
+在app(account)下新建model_config文件夹，里面放置model的config.json文件。
+
+    python manage.py gen_models --models account.model_config
+    
+可以获得**account/models.py**文件。

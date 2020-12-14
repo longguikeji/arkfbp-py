@@ -1,10 +1,8 @@
 import json
-
+import os
 
 def convert_def_to_model_lines(definition):
     lines = []
-    lines += ['']
-
     model_name = definition.get('className')
     lines += [f'class {model_name}(models.Model):']
     for field in definition.get('fields'):
@@ -22,7 +20,6 @@ def convert_def_to_model_lines(definition):
 
 def convert_json_model_to_lines(json_model):
     lines = []
-    lines += ['from django.db import models']
     models = json_model.get('models')
     for model in models:
         lines += [''  ]
@@ -34,6 +31,17 @@ def convert_json_model_to_lines(json_model):
 def convert_json_file_to_model_lines(json_file):
     with open(json_file, 'r', encoding='utf8') as _file:
         data = json.load(_file)
-
         lines = convert_json_model_to_lines(data)
         return lines
+
+def convert_directory_configs_to_models(directory):
+    lines = []
+    lines += ['from django.db import models']
+    lines += ['']
+
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            if filename.endswith('.json'):
+                lines += convert_json_file_to_model_lines(os.path.join(root, filename))
+
+    return lines
