@@ -2,6 +2,7 @@
 from .api_node import APINode
 from .base import Node
 from .function_node import FunctionNode
+from .flow_node import FlowNode
 from .if_node import IFNode
 from .loop_node import LoopNode
 from .nop_node import NopNode

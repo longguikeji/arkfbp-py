@@ -165,8 +165,8 @@ class Flow:
             sys.stdout.write(f'Inputs: {node.inputs}\n')
             sys.stdout.write(f'Outputs: {node.outputs}\n')
             sys.stdout.write('****** END *******\n\n')
-        if self.valid_status(target=FLOW_ERROR):
-            raise self.error
+        #if self.valid_status(target=FLOW_ERROR):
+        #    raise self.error
         sys.stdout.write(f'------------- DEBUG END ({self}) -------------\n')
 
     def before_initialize(self, *args, **kwargs):

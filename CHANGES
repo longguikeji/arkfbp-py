@@ -1,0 +1,23 @@
+# 2020-12-9
+
+## am
+
+建立apiflow路径文件。
+
+**TODO**
+
+- 重写MetaConfig
+- 重写ViewFlow
+
+
+## pm
+
+改写renderer 和 response 部分
+
+# 2020-12-11
+
+完成一个基本流程
+
+# 2020-12-12
+
+handler 负责分派请求到不同的流处理。
